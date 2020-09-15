@@ -1,4 +1,6 @@
+import { EitherAsync } from './EitherAsync'
 import { Maybe, Just, Nothing } from './Maybe'
+import { pipe } from './pointless/function-utils'
 
 export type EitherPatterns<L, R, T> =
   | { Left: (l: L) => T; Right: (r: R) => T }
@@ -500,27 +502,3 @@ export const isLeft: IsLeft = <L, R>(
 export const isRight: IsRight = <L, R>(
   either: Either<L, R>
 ): either is Either<never, R> => either.isRight()
-export type Bimappable<L, R> = {
-  bimap<L2, R2>(f: (value: L) => L2, g: (value: R) => R2): Bimappable<L2, R2>
-}
-export type Bimap = {
-  <L, R, L2, R2>(f: (value: L) => L2, g: (value: R) => R2): (
-    either: Either<L, R>
-  ) => Either<L2, R2>
-  <L, R, L2, R2>(f: (value: L) => L2, g: (value: R) => R2): (
-    either: Bimappable<L, R>
-  ) => Bimappable<L2, R2>
-}
-export const bimap: Bimap = (f: any, g: any) => (either: any) =>
-  either.bimap(f, g)
-export type Applicable<T> = {
-  ap<T2>(other: Applicable<(value: T) => T2>): Applicable<T2>
-}
-export type Ap = {
-  <L, R, R2>(other: Either<L, (value: R) => R2>): (
-    either: Either<L, R>
-  ) => Either<L, R2>
-  <T, T2>(other: Applicable<(value: T) => T2>): (applicable: Applicable<T>) => Applicable<T2> 
-}
-export const ap: Ap = (other:any) => (either:any) => either.ap(other)
-

@@ -30,7 +30,7 @@ export interface MaybeAsync<T> extends PromiseLike<Maybe<T>> {
   /** Transforms the value inside `this` with a given function. If the MaybeAsync that is being mapped resolves to Nothing then the mapping function won't be called and `run` will resolve the whole thing to Nothing, just like the regular Maybe#map */
   map<U>(f: (value: T) => U): MaybeAsync<U>
   /** Transforms `this` with a function that returns a `MaybeAsync`. Behaviour is the same as the regular Maybe#chain */
-  chain<U>(f: (value: T) => PromiseLike<Maybe<U>>): MaybeAsync<U>
+  chain<U>(f: (value: T) => MaybeAsync<U>): MaybeAsync<U>
   /** Converts `this` to a EitherAsync with a default error value */
   toEitherAsync<L>(error: L): EitherAsync<L, T>
   /** Runs an effect if `this` is `Just`, returns `this` to make chaining other methods possible */

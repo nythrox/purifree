@@ -1,14 +1,11 @@
-import { Just, Maybe } from '../Maybe'
-import { Either, Right } from '../Either'
+import { Just, Maybe, MaybePatterns, Nothing } from '../Maybe'
+import { Either, EitherPatterns, Left, Right } from '../Either'
 import { EitherAsync } from '../EitherAsync'
-import { pipe, flow } from './function-utils'
+import { pipe, flow, identity } from './function-utils'
 import { MaybeAsync } from '../MaybeAsync'
 import { Tuple } from '../Tuple'
 import { NonEmptyList } from '../NonEmptyList'
-type sera = Either<Error, number> extends Mappable<number> ? true : false
-type Mappable<T> = {
-  map<T2>(f: (value: T) => T2): Mappable<T2>
-}
+
 // Try one - Doesnt work: Overload will always choose the first function
 // interface Map {
 //   <R, R2, L>(mapper: (val: R) => R2): (
@@ -68,51 +65,185 @@ type Mappable<T> = {
 //   (m: MaybeAsync<T>): MaybeAsync<T2>
 //   (m: NonEmptyList<T>): NonEmptyList<T2>
 // }
-
-interface Map {
-  <M, T = get_T_ofMonad<M>, T2 = any>(mapper: (val: T) => T2): (
-    monad: M
-  ) => get_Return_ofMonad<M, T2>
+type sera = Either<Error, number> extends Mappable<number> ? true : false
+type sera2 = Either<Error, number> extends Chainable<number> ? true : false
+type Mappable<T> = {
+  map<T2>(f: (value: T) => T2): Mappable<T2>
+}
+type Chainable<T> = {
+  chain<T2>(f: (value: T) => Chainable<T2>): Chainable<T2>
 }
 
-type get_T_ofMonad<M> = M extends Either<any, infer T>
-  ? T
-  : M extends EitherAsync<any, infer T>
-  ? T
+type Applicable<T> = {
+  ap<T2>(other: Applicable<(value: T) => T2>): Applicable<T2>
+}
+type Bimappable<L, R> = {
+  bimap<L2, R2>(f: (value: L) => L2, g: (value: R) => R2): Bimappable<L2, R2>
+}
+
+interface Map {
+  <M extends Mappable<any>, T = get_1T_ofADT<M>, T2 = any>(
+    mapper: (val: T) => T2
+  ): (monad: M) => change_1T_ofADT<M, T2>
+}
+
+interface Chain {
+  <
+    M extends Chainable<any>,
+    T = get_1T_ofADT<M>,
+    R extends change_1T_ofADT<M, any> = change_1T_ofADT<M, any>,
+    T2 = get_1T_ofADT<R>
+  >(
+    chainer: (val: T) => R
+  ): (monad: M) => change_1T_ofADT<M, T2>
+}
+interface CaseOfable {
+  caseOf<T>(patterns: any): T
+}
+export type CaseOf = {
+  <
+    M extends CaseOfable,
+    P extends getPatternsOfADT<M>,
+    T2 = getReturn_T_ofPattern<P>
+  >(
+    p: P
+  ): (m: M) => T2
+}
+export const caseOf: CaseOf = (p) => (m) => m.caseOf(p) as any
+type getPatternsOfADT<M> = M extends Either<infer L, infer R>
+  ? EitherPatterns<L, R, any>
   : M extends Maybe<infer T>
-  ? T
-  : M extends MaybeAsync<infer T>
-  ? T
-  : M extends NonEmptyList<infer T>
-  ? T
-  : M extends Mappable<infer T>
-  ? T
+  ? MaybePatterns<T, any>
+  : never
+type getReturn_T_ofPattern<P> = P extends
+  | EitherPatterns<any, any, infer R>
+  | EitherPatterns<any, never, infer R>
+  | EitherPatterns<never, any, infer R>
+  ? R
+  : P extends MaybePatterns<any, infer R> | MaybePatterns<never, infer R>
+  ? R
   : never
 
-type get_Return_ofMonad<M, T2> = M extends Either<infer L, any>
-  ? Either<L, T2>
-  : M extends EitherAsync<infer L, any>
-  ? EitherAsync<L, T2>
+export type Ap = {
+  <
+    M extends Applicable<any>,
+    T = get_1T_ofADT<M>,
+    R extends change_1T_ofADT<M, (value: T) => any> = change_1T_ofADT<
+      M,
+      (value: T) => any
+    >,
+    F = get_1T_ofADT<R>,
+    T2 = F extends (...args: any) => infer R ? R : never
+  >(
+    other: R
+  ): (applicable: M) => change_1T_ofADT<M, T2>
+}
+export type Bimap = {
+  <
+    M extends Bimappable<any, any>,
+    L = get_T_ofADT<M>[1],
+    R = get_T_ofADT<M>[0],
+    L2 = any,
+    R2 = any
+  >(
+    f: (value: L) => L2,
+    g: (value: R) => R2
+  ): (bimappable: M) => change_T_ofADT<M, [R2, L2]>
+}
+export const ap: Ap = (other) => (either) => either.ap(other as any) as any
+
+export const bimap: Bimap = (f, g) => (bimappable) =>
+  bimappable.bimap(f, g) as any
+
+export const chain: Chain = (chainer) => (chainable) =>
+  chainable.chain(chainer as any) as any
+
+export const map: Map = (mapper) => (m) => m.map(mapper) as any
+
+type Reduceable<T> = {
+  reduce<T2>(reducer: (accumulator: T2, value: T) => T2, initialValue: T2): T2
+}
+type Reduce = {
+  <M extends Reduceable<any>, T = get_1T_ofADT<M>, T2 = any>(
+    reducer: (accumulator: T2, value: T) => T2,
+    initialValue: T2
+  ): (m: M) => T2
+}
+export const reduce: Reduce = (reducer, initialValue) => (m) =>
+  m.reduce(reducer, initialValue) as any
+
+type test1 = get_T_ofADT<Either<number, string>>
+type test2 = change_T_ofADT<Either<any, any>, [number, string]>
+// gets the main T of a Algebraic Data Type (Either<_,T>, Option<T>, Tuple<_,T>)
+type get_T_ofADT<M> = M extends Either<infer B, infer A>
+  ? [A, B]
+  : M extends EitherAsync<infer B, infer A>
+  ? [A, B]
+  : M extends Tuple<infer B, infer A>
+  ? [A, B]
+  : M extends Maybe<infer A>
+  ? [A]
+  : M extends MaybeAsync<infer A>
+  ? [A]
+  : M extends NonEmptyList<infer A>
+  ? [A]
+  : never
+
+// gets the main T of a Algebraic Data Type (Either<_,T>, Option<T>, Tuple<_,T>)
+
+type change_T_ofADT<M, T extends any[]> = M extends Either<any, any>
+  ? Either<T[1], T[0]>
+  : M extends EitherAsync<any, any>
+  ? EitherAsync<T[1], T[0]>
+  : M extends Tuple<any, any>
+  ? Tuple<T[1], T[0]>
   : M extends Maybe<any>
-  ? Maybe<T2>
+  ? Maybe<T[0]>
   : M extends MaybeAsync<any>
-  ? MaybeAsync<T2>
+  ? MaybeAsync<T[0]>
   : M extends NonEmptyList<any>
-  ? NonEmptyList<T2>
-  : M extends Mappable<any>
-  ? Mappable<T2>
+  ? NonEmptyList<T[0]>
   : never
 
-export const map: Map = ((mapper: any) => (m: any) => {
-  return m.map(mapper)
-}) as any
+  
+type get_1T_ofADT<M> = get_T_ofADT<M>[0]
+type change_1T_ofADT<M, T2> = change_T_ofADT<M, [T2]>
+type get_2T_ofADT<M> = {
+  primary: get_T_ofADT<M>[0],
+  secondary: get_T_ofADT<M>[1]
+}
+type change_2T_ofADT<M, P, S> = change_T_ofADT<M, [P, S]>
 
 const v = pipe(
-  Right<number, Error>(1),
-  map((e) => Just(e)),
+  Right(1),
   map((e) => 'hi'),
+  ap(Right((e: string) => '')),
+  // caseOf({
+  //   Right: (n) => 'ola',
+  //   Left: (err) => 'hello'
+  // })
   map((e) => e)
-  // mapLeft((err) => new Error('bad num'))
+)
+const bimap1 = pipe(
+  Right('jason'),
+  bimap(
+    (err) => new Error('hi'),
+    (name) => 10
+  )
+)
+const bimap2 = pipe(
+  Tuple(10, 'jason'),
+  bimap(
+    (num) => num * 100,
+    (name) => name
+  )
+)
+const bimap3 = pipe(
+  EitherAsync.liftEither(Right('jason')),
+  bimap(
+    (err) => new Error('hi'),
+    (name) => 10
+  )
 )
 const d = pipe(
   EitherAsync.liftEither(Right(0)),
@@ -124,8 +255,48 @@ const b = pipe(
   NonEmptyList([0]),
   map((num) => num * 2)
 )
+
 const c = pipe(
   Just(0),
   map((num) => 'hi'),
-  map((e) => Right(e))
+  map((e) => Right(e)),
+  caseOf({
+    Just: (e) => '',
+    Nothing: () => 'hello world'
+  })
+)
+
+const ftr = pipe(
+  EitherAsync.liftEither(Right(0)),
+  chain((e) => EitherAsync.liftEither(Right(e.toString())))
+)
+
+const mbs = pipe(
+  MaybeAsync.liftMaybe(Just(0)),
+  chain((e) => MaybeAsync.liftMaybe(Just(e.toString()))),
+  chain((e) => {
+    if (e == '2') return MaybeAsync.liftMaybe(Just(4))
+    return MaybeAsync.liftMaybe(Just(4))
+  })
+)
+
+const test = pipe(
+  Right(0),
+  map((num) => Just(num.toString())),
+  caseOf({
+    Right: (e) => Just(e),
+    Left: () => Nothing
+  }),
+  chain((a) => a),
+  caseOf({
+    Just: (e) => Right(e),
+    Nothing: () => Left(new Error())
+  }),
+  bimap(
+    () => new Error('somethign went wrong'),
+    (val) => 'hello, ' + val
+  ),
+  map((e) => e.length),
+  map((length) => Array.from({ length }).map((_, i) => i)),
+  map(flow(reduce((acc, curr) => acc + curr, 0)))
 )
