@@ -1,5 +1,6 @@
 import { Maybe, Just, Nothing } from './Maybe'
 import { EitherAsync } from './EitherAsync'
+import { Type } from './pointless/hkt_tst'
 
 export interface MaybeAsyncTypeRef {
   /** Constructs a MaybeAsync object from a function that takes an object full of helpers that let you lift things into the MaybeAsync context and returns a Promise */
@@ -11,8 +12,21 @@ export interface MaybeAsyncTypeRef {
   /** Constructs an MaybeAsync object from a Maybe */
   liftMaybe<T>(maybe: Maybe<T>): MaybeAsync<T>
 }
+export const MAYBE_ASYNC_URI = 'MaybeAsync'
+export type MAYBE_ASYNC_URI = typeof MAYBE_ASYNC_URI
+
+declare module './pointless/hkt_tst' {
+  export interface URI2HKT<Types extends any[]> {
+    [MAYBE_ASYNC_URI]: MaybeAsync<Types[0]>
+  }
+}
 
 export interface MaybeAsync<T> extends PromiseLike<Maybe<T>> {
+  readonly _URI: MAYBE_ASYNC_URI
+  readonly _A: [T]
+
+  [Symbol.iterator]: () => Iterator<Type<MAYBE_ASYNC_URI, [T]>, T, T>
+
   /**
    * It's important to remember how `run` will behave because in an
    * async context there are other ways for a function to fail other
@@ -73,6 +87,11 @@ class MaybeAsyncImpl<T> implements MaybeAsync<T> {
   constructor(
     private runPromise: (helpers: MaybeAsyncHelpers) => PromiseLike<T>
   ) {}
+
+  readonly _URI!: MAYBE_ASYNC_URI
+  readonly _A!: [T];
+
+  [Symbol.iterator]: () => Iterator<Type<MAYBE_ASYNC_URI, [T]>, T, T>
 
   async run(): Promise<Maybe<T>> {
     try {

@@ -13,9 +13,21 @@ export interface TupleTypeRef {
   fromArray<F, S>([fst, snd]: [F, S]): Tuple<F, S>
 }
 
+export const TUPLE_URI = 'Tuple'
+export type TUPLE_URI = typeof TUPLE_URI
+
+declare module './pointless/hkt_tst' {
+  export interface URI2HKT<Types extends any[]> {
+    [TUPLE_URI]: Tuple<Types[1], Types[0]>
+  }
+}
 export interface Tuple<F, S> extends Iterable<F | S>, ArrayLike<F | S> {
   0: F
   1: S
+
+  readonly _URI: TUPLE_URI
+  readonly _A: [S, F]
+
   [index: number]: F | S
   length: 2
   toJSON(): [F, S]
@@ -69,6 +81,9 @@ class TupleImpl<F, S> implements Tuple<F, S> {
     this[0] = first
     this[1] = second
   }
+
+  readonly _URI!: TUPLE_URI
+  readonly _A!: [S, F];
 
   *[Symbol.iterator]() {
     yield this.first

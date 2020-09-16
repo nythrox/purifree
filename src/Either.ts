@@ -1,12 +1,26 @@
-import { EitherAsync } from './EitherAsync'
 import { Maybe, Just, Nothing } from './Maybe'
-import { pipe } from './pointless/function-utils'
+import { Type } from './pointless/hkt_tst'
 
 export type EitherPatterns<L, R, T> =
   | { Left: (l: L) => T; Right: (r: R) => T }
   | { _: () => T }
 
+export const EITHER_URI = 'Either'
+
+export type EITHER_URI = typeof EITHER_URI
+
+declare module './pointless/hkt_tst' {
+  export interface URI2HKT<Types extends any[]> {
+    [EITHER_URI]: Either<Types[1], Types[0]>
+  }
+}
 export interface Either<L, R> {
+  
+  readonly _URI: EITHER_URI
+  readonly _A: [R, L]
+  
+  [Symbol.iterator]: () => Iterator<Type<EITHER_URI, [R,L]>, R, R>
+  
   /** Returns true if `this` is `Left`, otherwise it returns false */
   isLeft(): this is Either<L, never>
   /** Returns true if `this` is `Right`, otherwise it returns false */
@@ -155,9 +169,14 @@ export const Either: EitherTypeRef = {
 
 class Right<R, L = never> implements Either<L, R> {
   private _ = 'R'
+  
+  
+  readonly _URI!: EITHER_URI
+  readonly _A!: [R, L]
 
   constructor(private __value: R) {}
-
+  [Symbol.iterator]: () => Iterator<Type<EITHER_URI, [R,L]>, R, R>
+  
   isLeft(): false {
     return false
   }
@@ -319,7 +338,12 @@ Right.prototype.constructor = Either as any
 class Left<L, R = never> implements Either<L, R> {
   private _ = 'L'
 
+  readonly _URI!: EITHER_URI
+  readonly _A!: [R, L]
+
   constructor(private __value: L) {}
+
+  [Symbol.iterator]: () => Iterator<Type<EITHER_URI, [R,L]>, R, R>
 
   isLeft(): true {
     return true

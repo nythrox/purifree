@@ -1,4 +1,5 @@
 import { Either, Left, Right } from './Either'
+import { Type } from './pointless/hkt_tst'
 
 export type MaybePatterns<T, U> =
   | { Just: (value: T) => U; Nothing: () => U }
@@ -7,10 +8,23 @@ export type MaybePatterns<T, U> =
 interface AlwaysJust {
   kind: '$$MaybeAlwaysJust'
 }
+export const MAYBE_URI = 'Option'
+
+export type MAYBE_URI = typeof MAYBE_URI
+
+declare module './pointless/hkt_tst' {
+  export interface URI2HKT<Types extends any[]> {
+    [MAYBE_URI]: Maybe<Types[0]>
+  }
+}
 
 type ExtractMaybe<T, TDefault> = T extends never ? TDefault : T | TDefault
 
 export interface Maybe<T> {
+  readonly _URI: MAYBE_URI
+  readonly _A: [T]
+
+  [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [T]>, T, T>
   /** Returns true if `this` is `Just`, otherwise it returns false */
   isJust(): this is AlwaysJust
   /** Returns true if `this` is `Nothing`, otherwise it returns false */
@@ -171,6 +185,11 @@ export const Maybe: MaybeTypeRef = {
 class Just<T> implements Maybe<T> {
   constructor(private __value: T) {}
 
+  [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [never]>, never, never>
+  
+  readonly _URI!: MAYBE_URI
+  readonly _A!: [T]
+
   isJust(): boolean {
     return true
   }
@@ -316,7 +335,14 @@ class Just<T> implements Maybe<T> {
 Just.prototype.constructor = Maybe as any
 
 class Nothing implements Maybe<never> {
+
+  
+  [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [never]>, never, never>
+  
   private __value!: never
+
+  readonly _URI!: MAYBE_URI
+  readonly _A!: [never]
 
   isJust() {
     return false

@@ -4,12 +4,22 @@ import { Tuple } from './Tuple'
 export type NonEmptyListCompliant<T> = T[] & { 0: T }
 
 export interface NonEmptyList<T> extends NonEmptyListCompliant<T> {
+  readonly _URI: NON_EMPTY_LIST_URI
+  readonly _A: [T]
   map<U>(
     this: NonEmptyList<T>,
     callbackfn: (value: T, index: number, array: NonEmptyList<T>) => U,
     thisArg?: any
   ): NonEmptyList<U>
   reverse(this: NonEmptyList<T>): NonEmptyList<T>
+}
+export const NON_EMPTY_LIST_URI = 'NonEmptyList'
+export type NON_EMPTY_LIST_URI = typeof NON_EMPTY_LIST_URI
+
+declare module './pointless/hkt_tst' {
+  export interface URI2HKT<Types extends any[]> {
+    [NON_EMPTY_LIST_URI]: NonEmptyList<Types[0]>
+  }
 }
 
 export interface NonEmptyListTypeRef {

@@ -1,147 +1,92 @@
-import { pipe } from './function-utils'
+import { Either, Left, Right } from '../Either'
+import { EitherAsync } from '../EitherAsync'
+import { Just, Maybe } from '../Maybe'
+import { Tuple } from '../Tuple'
+import { flow, pipe } from './function-utils'
+import { caseOf } from './map'
 
-export interface HKT<F, A> {
+export interface HKT<F, A extends any[]> {
   _URI: F
   _A: A
 }
-export interface URI2HKT<A> {}
-
 export type URIS = keyof URI2HKT<any>
-export type Type<URI extends URIS, A> = URI2HKT<A>[URI]
-
-export type Type$<URI extends URIS, A extends any[]> = URI2HKT<A>[URI]
-export type URI2HKT$<Types extends any[]>= {
-    List: List<Types[0]>[]
-    Option: Option<Types[0]>
-}
-export interface URI2HKT<A> {
-  List: List<A>
-  Option: Option<A> // maps the type literal "Option" to the type `Option`
-}
-class List<A> {
-  readonly _URI!: 'List'
-  readonly _A!: A
-
-  map<B>(f: (a: A) => B): List<B> {
-    return 0 as any
-  }
-
-  chain<B>(f: (a: A) => List<B>): List<B> {
-    return 0 as any
-  }
-}
-const list = <T>(..._args: T[]) => new List<T>()
+type ReplaceFirst<Arr extends any[], T> = Arr extends [
+  infer _Head,
+  ...infer Rest
+]
+  ? [T, ...Rest]
+  : []
+export type Type<URI extends URIS, A extends any[]> = URI2HKT<A>[URI]
+// Types are sorted by order of priority, not of placement (type #1 is mapped, type #1 is mapLeft, etc)
+export interface URI2HKT<Types extends any[]> {}
 export interface Functor1<F extends URIS> {
-  map: <A, B>(f: (a: A) => B, fa: Type<F, A>) => Type<F, B>
+  map: <A, B>(f: (a: A) => B, fa: Type<F, [A]>) => Type<F, [B]>
 }
 
-export const OPTION_URI = 'Option'
-
-export type OPTION_URI = typeof OPTION_URI
-
-export class None<A> {
-  readonly _URI!: OPTION_URI
-  readonly _A!: never
-  readonly tag: 'None' = 'None'
-  map<B>(f: (a: A) => B): Option<B> {
-    return none
-  }
-
-  chain<B>(f: (a: A) => Option<B>): Option<B> {
-    return none
-  }
-
-  [Symbol.iterator]: () => Iterator<
-    None<A>,
-    A,
-    { value?: A; returnSelf: boolean } | undefined
-  > = 0 as any
+interface FunctorKind<F extends URIS, A extends any[]> extends HKT<F, A> {
+  readonly map: <B>(f: (a: A[0]) => B) => Type<F, ReplaceFirst<A, B>>
+}
+interface MonadKind<F extends URIS, A extends any[]> extends FunctorKind<F, A> {
+  readonly chain: <B>(
+    f: (a: A[0]) => Type<F, [B]>
+  ) => Type<F, ReplaceFirst<A, B>>
+}
+interface GeneratableKind<F extends URIS, A extends any[]>
+  extends MonadKind<F, A> {
+  [Symbol.iterator]: () => Iterator<Type<F, [A]>, A, A>
 }
 
-export class Some<A> {
-  readonly _URI!: OPTION_URI
-  readonly _A!: A
-  readonly tag: 'Some' = 'Some'
-  constructor(readonly value: A) {}
-  map<B>(f: (a: A) => B): Option<B> {
-    return some(f(this.value))
-  }
-
-  chain<B>(f: (a: A) => Option<B>): Option<B> {
-    return 0 as any
-  }
-
-  [Symbol.iterator]: () => Iterator<
-    Some<A>,
-    A,
-    { value?: A; returnSelf: boolean } | undefined
-  > = 0 as any
-}
-
-export type Option<A> = None<A> | Some<A>
-
-export const none: Option<never> = new None()
-
-export const some = <A>(a: A): Option<A> => {
-  return new Some(a)
-}
-const mapO = <A, B>(f: (a: A) => B, fa: Option<A>) => {
-  return fa.map(f)
-}
-
-interface FunctorKind<F extends URIS, A> extends HKT<F, A> {
-  readonly map: <B>(f: (a: A) => B) => Type<F, B>
-}
-interface MonadKind<F extends URIS, A> extends FunctorKind<F, A> {
-  readonly chain: <B>(f: (a: A) => Type<F, B>) => Type<F, B>
-}
-interface GeneratableKind<F extends URIS, A> extends MonadKind<F, A> {
-  [Symbol.iterator]: () => Iterator<
-    Type<F, A>,
-    A,
-    { value?: A; returnSelf: boolean } | undefined
-  >
+interface ReduceableKind<F extends URIS, A extends any[]> extends HKT<F, A> {
+  reduce<T2>(
+    reducer: (accumulator: T2, value: A[0]) => T2,
+    initialValue: T2
+  ): T2
 }
 const map = <Functor extends FunctorKind<any, any>, B = any>(
-  f: (a: Functor['_A']) => B
-) => (fa: Functor): Type<Functor['_URI'], B> => {
+  f: (a: Functor['_A'][0]) => B
+) => (fa: Functor): Type<Functor['_URI'], ReplaceFirst<Functor['_A'], B>> => {
   return fa.map(f)
 }
-
+const reduce = <Reduceable extends ReduceableKind<any, any>, T2 = any>(
+  reducer: (accumulator: T2, value: Reduceable['_A'][0]) => T2,
+  initialValue: T2
+) => (reduceable: Reduceable): T2 => {
+  return reduceable.reduce(reducer, initialValue)
+}
 const chain = <Monad extends MonadKind<any, any>, B = any>(
-  f: (a: Monad['_A']) => MonadKind<Monad['_URI'], B>
-) => (fa: Monad): Type<Monad['_URI'], B> => {
+  f: (a: Monad['_A']) => MonadKind<Monad['_URI'], ReplaceFirst<Monad['_A'], B>>
+) => (fa: Monad): Type<Monad['_URI'], ReplaceFirst<Monad['_A'], B>> => {
   return fa.map(f)
 }
-
-export const option: Functor1<OPTION_URI> = {
-  map: mapO
-}
-
-type hz = Type<'Option', number>
-type sla = hz['_URI']
-const x = mapO((n) => n * 2, some(1))
 
 function Do<URI extends URIS, R = any>(
   fun: () => Generator<GeneratableKind<URI, any>, R, any>
-): Type<URI, R> {
+): Type<URI, [R]> {
   return null as any
 }
 
 const v = Do(function* () {
-  const h = yield* some(0)
+  const h = yield* Just(0)
   return 'jasno'
 })
 
-const vv = pipe(
-  some(0),
-  chain((n) => some('jasno'))
+const pointfreeForAll = pipe(
+  // Either
+  Right(0),
+  map((num) => num * 2),
+  caseOf({
+    Right: () => Just(5),
+    Left: () => Just(5)
+  }),
+  // Just
+  map((num) => num * 2),
+  caseOf({
+    Just: () => Tuple(1, 2),
+    Nothing: () => Tuple(1, 2)
+  }),
+  // Tuple
+  map((scnd) => scnd * 2),
+  // EitherAsync
+  (tuple) => EitherAsync.liftEither(Right(tuple)),
+  map(flow(reduce((prev, curr) => prev + curr, 0)))
 )
-
-const x1 = pipe(
-  some(1),
-  map((n) => n * 2)
-)
-
-type test = None<number> extends FunctorKind<'Option', number> ? true : false
-type h = Type<'Option', 'a'>['_A']

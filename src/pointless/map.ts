@@ -124,7 +124,7 @@ type getReturn_T_ofPattern<P> = P extends
   ? R
   : never
 
-export type Ap = {
+type Ap = {
   <
     M extends Applicable<any>,
     T = get_1T_ofADT<M>,
@@ -138,7 +138,7 @@ export type Ap = {
     other: R
   ): (applicable: M) => change_1T_ofADT<M, T2>
 }
-export type Bimap = {
+type Bimap = {
   <
     M extends Bimappable<any, any>,
     L = get_T_ofADT<M>[1],
@@ -150,15 +150,14 @@ export type Bimap = {
     g: (value: R) => R2
   ): (bimappable: M) => change_T_ofADT<M, [R2, L2]>
 }
-export const ap: Ap = (other) => (either) => either.ap(other as any) as any
+const ap: Ap = (other) => (either) => either.ap(other as any) as any
 
-export const bimap: Bimap = (f, g) => (bimappable) =>
-  bimappable.bimap(f, g) as any
+const bimap: Bimap = (f, g) => (bimappable) => bimappable.bimap(f, g) as any
 
-export const chain: Chain = (chainer) => (chainable) =>
+const chain: Chain = (chainer) => (chainable) =>
   chainable.chain(chainer as any) as any
 
-export const map: Map = (mapper) => (m) => m.map(mapper) as any
+const map: Map = (mapper) => (m) => m.map(mapper) as any
 
 type Reduceable<T> = {
   reduce<T2>(reducer: (accumulator: T2, value: T) => T2, initialValue: T2): T2
@@ -169,7 +168,7 @@ type Reduce = {
     initialValue: T2
   ): (m: M) => T2
 }
-export const reduce: Reduce = (reducer, initialValue) => (m) =>
+const reduce: Reduce = (reducer, initialValue) => (m) =>
   m.reduce(reducer, initialValue) as any
 
 type test1 = get_T_ofADT<Either<number, string>>
@@ -205,11 +204,10 @@ type change_T_ofADT<M, T extends any[]> = M extends Either<any, any>
   ? NonEmptyList<T[0]>
   : never
 
-  
 type get_1T_ofADT<M> = get_T_ofADT<M>[0]
 type change_1T_ofADT<M, T2> = change_T_ofADT<M, [T2]>
 type get_2T_ofADT<M> = {
-  primary: get_T_ofADT<M>[0],
+  primary: get_T_ofADT<M>[0]
   secondary: get_T_ofADT<M>[1]
 }
 type change_2T_ofADT<M, P, S> = change_T_ofADT<M, [P, S]>
