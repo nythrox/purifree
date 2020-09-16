@@ -100,7 +100,7 @@ interface Chain {
 interface CaseOfable {
   caseOf<T>(patterns: any): T
 }
-export type CaseOf = {
+export type Match = {
   <
     M extends CaseOfable,
     P extends getPatternsOfADT<M>,
@@ -109,7 +109,7 @@ export type CaseOf = {
     p: P
   ): (m: M) => T2
 }
-export const caseOf: CaseOf = (p) => (m) => m.caseOf(p) as any
+export const match: Match = (p) => (m) => m.caseOf(p) as any
 type getPatternsOfADT<M> = M extends Either<infer L, infer R>
   ? EitherPatterns<L, R, any>
   : M extends Maybe<infer T>
@@ -258,7 +258,7 @@ const c = pipe(
   Just(0),
   map((num) => 'hi'),
   map((e) => Right(e)),
-  caseOf({
+  match({
     Just: (e) => '',
     Nothing: () => 'hello world'
   })
@@ -281,12 +281,12 @@ const mbs = pipe(
 const test = pipe(
   Right(0),
   map((num) => Just(num.toString())),
-  caseOf({
+  match({
     Right: (e) => Just(e),
     Left: () => Nothing
   }),
   chain((a) => a),
-  caseOf({
+  match({
     Just: (e) => Right(e),
     Nothing: () => Left(new Error())
   }),

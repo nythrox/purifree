@@ -24,7 +24,7 @@ export interface Maybe<T> {
   readonly _URI: MAYBE_URI
   readonly _A: [T]
 
-  [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [T]>, T, T>
+  [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [T]>, T, any>
   /** Returns true if `this` is `Just`, otherwise it returns false */
   isJust(): this is AlwaysJust
   /** Returns true if `this` is `Nothing`, otherwise it returns false */
@@ -185,7 +185,7 @@ export const Maybe: MaybeTypeRef = {
 class Just<T> implements Maybe<T> {
   constructor(private __value: T) {}
 
-  [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [never]>, never, never>
+  [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [never]>, never, any>
   
   readonly _URI!: MAYBE_URI
   readonly _A!: [T]
@@ -337,7 +337,7 @@ Just.prototype.constructor = Maybe as any
 class Nothing implements Maybe<never> {
 
   
-  [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [never]>, never, never>
+  [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [never]>, never, any>
   
   private __value!: never
 

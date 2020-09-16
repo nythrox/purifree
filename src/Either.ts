@@ -1,5 +1,5 @@
 import { Maybe, Just, Nothing } from './Maybe'
-import { Type } from './pointless/hkt_tst'
+import { GeneratableKind } from './pointless/hkt_tst'
 
 export type EitherPatterns<L, R, T> =
   | { Left: (l: L) => T; Right: (r: R) => T }
@@ -14,13 +14,12 @@ declare module './pointless/hkt_tst' {
     [EITHER_URI]: Either<Types[1], Types[0]>
   }
 }
-export interface Either<L, R> {
-  
+export interface Either<L, R> extends GeneratableKind<'Either', [R, L]> {
   readonly _URI: EITHER_URI
   readonly _A: [R, L]
-  
-  [Symbol.iterator]: () => Iterator<Type<EITHER_URI, [R,L]>, R, R>
-  
+
+  [Symbol.iterator]: () => Iterator<Either<L, R>, R, any>
+
   /** Returns true if `this` is `Left`, otherwise it returns false */
   isLeft(): this is Either<L, never>
   /** Returns true if `this` is `Right`, otherwise it returns false */
@@ -169,14 +168,12 @@ export const Either: EitherTypeRef = {
 
 class Right<R, L = never> implements Either<L, R> {
   private _ = 'R'
-  
-  
+
   readonly _URI!: EITHER_URI
   readonly _A!: [R, L]
 
   constructor(private __value: R) {}
-  [Symbol.iterator]: () => Iterator<Type<EITHER_URI, [R,L]>, R, R>
-  
+  [Symbol.iterator]: () => Iterator<Either<L, R>, R, any>
   isLeft(): false {
     return false
   }
@@ -343,7 +340,7 @@ class Left<L, R = never> implements Either<L, R> {
 
   constructor(private __value: L) {}
 
-  [Symbol.iterator]: () => Iterator<Type<EITHER_URI, [R,L]>, R, R>
+  [Symbol.iterator]: () => Iterator<Either<L, R>, R, any>
 
   isLeft(): true {
     return true
