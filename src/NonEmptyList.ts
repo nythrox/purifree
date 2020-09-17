@@ -1,17 +1,57 @@
+import { Either, Right } from './Either'
 import { Maybe, Just, Nothing } from './Maybe'
+import {
+  of,
+  ApKind,
+  HKT,
+  ReplaceFirst,
+  Type,
+  SequenceableKind
+} from './pointless/hkt_tst'
 import { Tuple } from './Tuple'
-
 export type NonEmptyListCompliant<T> = T[] & { 0: T }
-
-export interface NonEmptyList<T> extends NonEmptyListCompliant<T> {
+export interface NonEmptyList<T>
+  extends NonEmptyListCompliant<T>,
+    SequenceableKind<NON_EMPTY_LIST_URI, [T]> {
   readonly _URI: NON_EMPTY_LIST_URI
   readonly _A: [T]
+  sequence<Ap extends ApKind<any, any>>(
+    this: NonEmptyList<Ap>,
+    of: of<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], NonEmptyList<Ap['_A'][0]>>>
   map<U>(
     this: NonEmptyList<T>,
     callbackfn: (value: T, index: number, array: NonEmptyList<T>) => U,
     thisArg?: any
   ): NonEmptyList<U>
   reverse(this: NonEmptyList<T>): NonEmptyList<T>
+}
+const list = [Right(0)] as NonEmptyList<Either<never, number>>
+const v = list.sequence(Either.of)
+
+const concat = <T>(arr: Array<T>) => (arr2: Array<T>) => arr.concat(arr2)
+class NonEmptyListImpl<T> extends Array<T> implements NonEmptyList<T> {
+  0: T
+  readonly _URI!: NON_EMPTY_LIST_URI
+  readonly _A!: [T]
+  sequence<Ap extends ApKind<any, any>>(
+    this: NonEmptyList<Ap>,
+    of: of<Ap['_URI']>
+  ) {
+    const initialState = of(([] as any) as NonEmptyList<Ap['_A'][0]>)
+    const cons = of(concat)
+    return this.reduce((tail, head) => cons.ap(head).ap(tail), initialState)
+  }
+  map<U>(
+    this: NonEmptyList<T>,
+    callbackfn: (value: T, index: number, array: NonEmptyList<T>) => U,
+    thisArg?: any
+  ): NonEmptyList<U> {
+    return this.map(callbackfn, thisArg)
+  }
+  reverse(this: NonEmptyList<T>): NonEmptyList<T> {
+    return this.reverse()
+  }
 }
 export const NON_EMPTY_LIST_URI = 'NonEmptyList'
 export type NON_EMPTY_LIST_URI = typeof NON_EMPTY_LIST_URI

@@ -14,6 +14,8 @@ declare module './pointless/hkt_tst' {
     [EITHER_URI]: Either<Types[1], Types[0]>
   }
 }
+
+
 export interface Either<L, R> extends GeneratableKind<'Either', [R, L]> {
   readonly _URI: EITHER_URI
   readonly _A: [R, L]
