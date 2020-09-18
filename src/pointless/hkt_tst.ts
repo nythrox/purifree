@@ -1,142 +1,104 @@
+import { validate } from 'json-schema'
 import { Either, Left, Right } from '../Either'
 import { EitherAsync } from '../EitherAsync'
 import { Just, Maybe } from '../Maybe'
 import { MaybeAsync } from '../MaybeAsync'
 import { NonEmptyList } from '../NonEmptyList'
 import { Tuple } from '../Tuple'
+import { ap, ApKind } from './ap'
+import { bimap } from './bimap'
+import { match } from './caseOf'
+import { chain, chainFlex, MonadKind } from './chain'
+import { filter } from './filter'
 import { flow, identity, pipe } from './function-utils'
-import { match } from './map'
+import { join } from './join'
+import { FunctorKind, map } from './map'
+import { mapLeft } from './mapLeft'
+import { reduce } from './reduce'
+import { sequence } from './sequence'
+import { swap } from './swap'
+import { toMaybe } from './toMaybe'
+// import { match } from './map_old'
 
-export interface HKT<F, A extends any[]> {
+export type URIS = keyof URI2HKT<any>
+export interface HKT<F extends URIS, A extends any[]> {
   _URI: F
   _A: A
 }
-export type URIS = keyof URI2HKT<any>
-export type ReplaceFirst<Arr extends any[], T> = Arr extends [
+export type ReplaceFirst<Arr extends any[], T extends any> = Arr extends [
   infer _Head,
   ...infer Rest
 ]
-  ? [T, ...Rest]
+  ? // ? [T, ...Rest]
+    // : Arr
+
+    [T, ...Rest]
+  : [T, ...any]
+
+export type ReplaceSecond<Arr extends any[], T> = Arr extends [
+  infer Head,
+  infer _Second,
+  ...infer Rest
+]
+  ? [Head, T, ...Rest]
+  : // : Arr
+  Arr extends [infer Head]
+  ? [Head, T]
+  : [undefined, T]
+
+export type SumSecondArg<Arr extends any[], T> = Arr extends [
+  infer Head,
+  infer Second,
+  ...infer Rest
+]
+  ? [Head, T | Second, ...Rest]
+  : // : Arr
+  Arr extends [infer Head]
+  ? [Head, T]
+  : [undefined, T]
+export type ReplaceFirstAndSecond<Arr extends any[], A, B> = Arr extends [
+  infer _First,
+  infer _Second,
+  ...infer Rest
+]
+  ? [A, B, ...Rest]
+  : // : Arr
+    [A, B]
+
+export type OrNever<K> = unknown extends K ? never : K
+
+export type ReplaceFirstAndReplaceSecondIfSecondIsNever<
+  Arr extends any[],
+  A,
+  B
+> = Arr extends [infer _First, infer Second, ...infer Rest]
+  ? [A, OrNever<Second> extends never ? B : Second, ...Rest]
+  : // : Arr
+    [A, B]
+
+export type SwapFirstTwo<Arr extends any[]> = Arr extends [
+  infer First,
+  infer Second,
+  ...infer Rest
+]
+  ? [Second, First, ...Rest]
+  : // : Arr
+  Arr extends [infer First]
+  ? [undefined, First]
   : []
+
 export type Type<URI extends URIS, A extends any[]> = URI2HKT<A>[URI]
 // Types are sorted by order of priority, not of placement (type #1 is mapped, type #1 is mapLeft, etc)
 export interface URI2HKT<Types extends any[]> {}
-export interface Functor1<F extends URIS> {
-  map: <A, B>(f: (a: A) => B, fa: Type<F, [A]>) => Type<F, [B]>
-}
 
-export interface FunctorKind<F extends URIS, A extends any[]>
-  extends HKT<F, A> {
-  readonly map: <B>(f: (a: A[0]) => B) => Type<F, ReplaceFirst<A, B>>
-}
+export type of<URI extends URIS> = <T>(value: T) => HKT<URI, [T, ...any]>
 
-export type of<URI extends URIS> = <T>(value: T) => ApKind<URI, [T, ...any]>
-
-export interface SequenceableKind<F extends URIS, A extends any[]>
-  extends HKT<F, A> {
-  // this is [ Either<L,R> ]
-  readonly sequence: <Ap extends ApKind<any, any>>(
-    this: Type<F, ReplaceFirst<A, Ap>>,
-    of: of<Ap['_URI']>
-  ) => Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Type<F, Ap['_A'][0]>>>
-}
-
-export interface ApKind<F extends URIS, A extends any[]> extends HKT<F, A> {
-  readonly ap: <R2>(
-    other: Type<F, ReplaceFirst<A, (value: A[0]) => R2>>
-  ) => Type<F, ReplaceFirst<A, R2>>
-}
-export interface MonadKind<F extends URIS, A extends any[]>
-  extends FunctorKind<F, A> {
-  readonly chain: <B>(
-    f: (a: A[0]) => Type<F, ReplaceFirst<A, B>>
-  ) => Type<F, ReplaceFirst<A, B>>
-}
-export interface GeneratableKind<F extends URIS, A extends any[]>
-  extends MonadKind<F, A> {
-  [Symbol.iterator]: () => Iterator<Type<F, A>, A[0], any>
-}
-interface ReduceableKind<F extends URIS, A extends any[]> extends HKT<F, A> {
-  reduce<T2>(
-    reducer: (accumulator: T2, value: A[0]) => T2,
-    initialValue: T2
-  ): T2
-}
-const map = <Functor extends FunctorKind<any, any>, B = any>(
-  f: (a: Functor['_A'][0]) => B
-) => (fa: Functor): Type<Functor['_URI'], ReplaceFirst<Functor['_A'], B>> => {
-  return fa.map(f)
-}
-const ap = <Ap extends ApKind<any, any>, B = any>(
-  other: ApKind<Ap['_URI'], ReplaceFirst<Ap['_A'], (value: Ap['_A'][0]) => B>>
-) => (fa: Ap): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], B>> => {
-  return fa.ap(other)
-}
-
-const sequence = <
-  Sequenceable extends SequenceableKind<any, [ApKind<any, any>, ...any]>,
-  Values = Sequenceable extends HKT<any, infer Args> ? Args : never,
-  Ap0 = Values extends any[] ? Values[0] : never,
-  Ap = Ap0 extends ApKind<infer ApUri, infer ApArgs>
-    ? ApKind<ApUri, ApArgs>
-    : never
->(
-  of: Ap extends ApKind<any, any> ? of<Ap['_URI']> : never
-) => (
-  seq: Sequenceable
-): Ap extends ApKind<any, any>
-  ? Type<
-      Ap['_URI'],
-      ReplaceFirst<Ap['_A'], Type<Sequenceable['_URI'], Ap['_A']>>
-    >
-  : never => {
-  return seq.sequence(of)
-}
-
-const reduce = <Reduceable extends ReduceableKind<any, any>, T2 = any>(
-  reducer: (accumulator: T2, value: Reduceable['_A'][0]) => T2,
-  initialValue: T2
-) => (reduceable: Reduceable): T2 => {
-  return reduceable.reduce(reducer, initialValue)
-}
-const chain = <Monad extends MonadKind<any, any>, B = any>(
-  f: (a: Monad['_A']) => MonadKind<Monad['_URI'], ReplaceFirst<Monad['_A'], B>>
-) => (fa: Monad): Type<Monad['_URI'], ReplaceFirst<Monad['_A'], B>> => {
-  return fa.map(f)
-}
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
-) => void
-  ? I
-  : never
-
-type NoUnion<Key> =
-  // If this is a simple type UnionToIntersection<Key> will be the same type, otherwise it will an intersection of all types in the union and probably will not extend `Key`
-  [Key] extends [UnionToIntersection<Key>] ? Key : never
-
-function Do<
-  Generatable extends GeneratableKind<any, any>,
-  URI extends URIS = Generatable['_URI'],
-  R = any,
-  IsUnion = NoUnion<URI> extends never ? true : false
->(
-  fun: () => Generator<Generatable, R, any>
-): IsUnion extends true
-  ? never
-  : Type<URI, ReplaceFirst<Generatable['_A'], R>> {
-  return null as any
-}
-type AssertEqual<A, B> = A extends B ? true : false
+export type AssertEqual<A, B, R = A extends B ? true : false> = R
 type test1 = AssertEqual<Either<any, any>, HKT<any, any>>
 type test2 = AssertEqual<HKT<any, any>, Either<any, any>>
 type test3 = AssertEqual<Type<'Either', any>, Either<any, any>>
 
-const v = Do(function* () {
-  const h = yield* Right(10)
-  const w = yield* Left(Error())
-  const hz = yield* Left('Error()')
-  return 'jasno'
-})
+type sla = [number, never] extends any[] ? true : false
 
 const chainableForAll1 = Right(0)
   .map((num) => num * 2)
@@ -176,24 +138,30 @@ const pointfreeForAll = pipe(
   map(reduce((prev, curr) => prev + curr, 0))
 )
 
-const sla = pipe(
-  Right(0),
-  chain(() => Right(''))
-)
-const sla2 = pipe(
-  Right(2),
-  ap(Right((num) => num * 2)),
-  ap(Right((num) => num * 10))
-)
+const minLength = (s: string): Either<Error, string> =>
+  s.length >= 6 ? Right(s) : Left(Error('at least 6 characters'))
 
-const nonEmptyListOf = <T>(o: T) => [o] as NonEmptyList<T>
+const oneCapital = (s: string): Either<Error, string> =>
+  /[A-Z]/g.test(s) ? Right(s) : Left(Error('at least one capital letter'))
 
-const seqtest = pipe(
-  [Right(0)] as NonEmptyList<Either<never, number>>,
-  sequence(Either.of)
-)
+const oneNumber = (s: string): Either<Error, string> =>
+  /[0-9]/g.test(s) ? Right(s) : Left(Error('at least one number'))
 
-const seqtest2 = pipe(
-  [Just(0)] as NonEmptyList<Maybe<number>>,
-  sequence(Maybe.of)
+const createValidator = <A, L, R>(
+  validator: (arg: A) => Either<L, R>,
+  ...validators: ((arg: A) => Either<L, R>)[]
+) => (arg: A) => {
+  const results = [validator, ...validators].map((validator) =>
+    validator(arg).swap()
+  ) as NonEmptyList<Either<R, L>>
+  return pipe(results, sequence(Either.of), swap())
+}
+
+const validatePassword = createValidator(minLength, oneCapital, oneNumber)
+
+const test = pipe(
+  Right('jason'),
+  chainFlex(validatePassword),
+  toMaybe(),
+  filter((password) => password.length > 5)
 )

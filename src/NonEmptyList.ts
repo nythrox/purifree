@@ -1,13 +1,13 @@
 import { Either, Right } from './Either'
 import { Maybe, Just, Nothing } from './Maybe'
+import { ApKind } from './pointless/ap'
 import {
   of,
-  ApKind,
   HKT,
   ReplaceFirst,
   Type,
-  SequenceableKind
 } from './pointless/hkt_tst'
+import { SequenceableKind } from './pointless/sequence'
 import { Tuple } from './Tuple'
 export type NonEmptyListCompliant<T> = T[] & { 0: T }
 export interface NonEmptyList<T>

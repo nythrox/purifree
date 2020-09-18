@@ -1,5 +1,4 @@
 import { Maybe, Just, Nothing } from './Maybe'
-import { GeneratableKind } from './pointless/hkt_tst'
 
 export type EitherPatterns<L, R, T> =
   | { Left: (l: L) => T; Right: (r: R) => T }
@@ -16,7 +15,7 @@ declare module './pointless/hkt_tst' {
 }
 
 
-export interface Either<L, R> extends GeneratableKind<'Either', [R, L]> {
+export interface Either<L, R>  {
   readonly _URI: EITHER_URI
   readonly _A: [R, L]
 
