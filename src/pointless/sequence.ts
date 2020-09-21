@@ -11,7 +11,6 @@ export interface SequenceableKind<F extends URIS, A extends any[]>
     of: of<Ap['_URI']>
   ) => Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Type<F, Ap['_A'][0]>>>
 }
-
 export const sequence = <
   Sequenceable extends SequenceableKind<any, [ApKind<any, any>, ...any]>,
   Values = Sequenceable extends HKT<any, infer Args> ? Args : never,

@@ -4,6 +4,7 @@ import { Tuple } from '../Tuple'
 import { pipe } from './function-utils'
 import {
   HKT,
+  OrNever,
   ReplaceFirst,
   ReplaceFirstAndReplaceSecondIfSecondIsNever,
   ReplaceFirstAndSecond,
@@ -68,6 +69,14 @@ export const chainFlex = <
   return fa.chain(f)
 }
 
+export interface ChainableNonHKT<T> {
+  readonly chain: <T2>(
+    f: (
+      value: T
+    ) => // | Type<F, ReplaceFirst<A, B>>
+    ChainableNonHKT<T2>
+  ) => ChainableNonHKT<T2>
+}
 const sla = pipe(
   Right<number, Error>(0),
   chain(() => Right<string, Error>('hi'))

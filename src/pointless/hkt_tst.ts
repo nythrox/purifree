@@ -1,4 +1,5 @@
 import { validate } from 'json-schema'
+import { List, Nothing } from '..'
 import { Either, Left, Right } from '../Either'
 import { EitherAsync } from '../EitherAsync'
 import { Just, Maybe } from '../Maybe'
@@ -8,7 +9,7 @@ import { Tuple } from '../Tuple'
 import { ap, ApKind } from './ap'
 import { bimap } from './bimap'
 import { match } from './caseOf'
-import { chain, chainFlex, MonadKind } from './chain'
+import { chain, Chainable, chainFlex, MonadKind } from './chain'
 import { filter } from './filter'
 import { flow, identity, pipe } from './function-utils'
 import { join } from './join'
@@ -148,13 +149,22 @@ const oneNumber = (s: string): Either<Error, string> =>
   /[0-9]/g.test(s) ? Right(s) : Left(Error('at least one number'))
 
 const createValidator = <A, L, R>(
-  validator: (arg: A) => Either<L, R>,
-  ...validators: ((arg: A) => Either<L, R>)[]
+  validator: (value: A) => Either<L, R>,
+  ...validators: ((value: A) => Either<L, R>)[]
 ) => (arg: A) => {
   const results = [validator, ...validators].map((validator) =>
     validator(arg).swap()
   ) as NonEmptyList<Either<R, L>>
   return pipe(results, sequence(Either.of), swap())
+}
+const createAsyncValidator = <A, L, R>(
+  validator: (value: A) => EitherAsync<L, R>,
+  ...validators: ((value: A) => EitherAsync<L, R>)[]
+) => (arg: A) => {
+  const results = [validator, ...validators].map((validator) =>
+    validator(arg).swap()
+  ) as NonEmptyList<EitherAsync<R, L>>
+  return pipe(results, sequence(EitherAsync.of), swap())
 }
 
 const validatePassword = createValidator(minLength, oneCapital, oneNumber)
@@ -165,3 +175,146 @@ const test = pipe(
   toMaybe(),
   filter((password) => password.length > 5)
 )
+
+const list = pipe(
+  List(1, 2, 3, 4, 5),
+  chain((num) => List(num * 2)),
+  reduce((a, b) => a + b, 0)
+)
+
+type KleisliFunction<URI extends URIS, A, B> = (
+  value: A
+) => Chainable<URI, ReplaceFirst<any, B>>
+
+/*
+  def andThen[C](f: B => M[C])
+                (implicit M: Monad[M]): Kleisli[M, A, C] =
+   Kleisli((a: A) => M.flatMap(run(a))(f))
+
+*/
+/*
+  def flatMap[C](f: B => Kleisli[M, A, C])
+                (implicit M: Monad[M]): Kleisli[M, A, C] =
+    Kleisli((a: A) => M.flatMap[B, C](run(a))(((b: B) => f(b).run(a))))
+
+    */
+
+// class Kleisi<URI extends URIS, A, B> {
+//   constructor(private run: (value: A) => Type<URI, [B]>) {}
+//   andThen<C>(
+//     this: Type<URI, any> extends MonadKind<any, any> ? any : never,
+//     // this: Kleisi<'Either', A,B>
+//     f: (value: B) => Type<URI, [C]>
+//   ): Kleisi<URI, A, C> {
+//     return new Kleisi((a) => (this as any).run(a).chain(f))
+//   }
+
+// }
+
+// const kleisi = <URI extends URIS, A, B>(f: KleisliFunction<URI, A, B>) => f
+
+// const hoi: KleisliFunction<'Maybe', string, string> = (name: string) =>
+//   Just(name)
+
+type getKleisiInfo<
+  T extends (...args: any) => Chainable<any, any>,
+  Monad extends Chainable<any, any> = ReturnType<T>,
+  URI extends URIS = Monad['_URI'],
+  Generics extends any[] = Monad['_A'],
+  A = Monad['_A'][0]
+> = [Monad, URI, Generics, A]
+
+function kleisiFlow<
+  func1 extends (...args: any) => Chainable<any, any>,
+  Monad extends Chainable<any, any> = ReturnType<func1>,
+  URI extends URIS = Monad['_URI'],
+  Generics extends any[] = Monad['_A'],
+  A = Monad['_A'][0],
+  B = any
+>(
+  a: func1,
+  b: (arg: A) => HKT<URI extends infer U ? U : never, ReplaceFirst<Generics, B>>
+): (
+  ...args: Parameters<func1>
+) => Type<Monad['_URI'], ReplaceFirst<Monad['_A'], B>>
+function kleisiFlow<
+  func1 extends (...args: any) => Chainable<any, any>,
+  Monad extends Chainable<any, any> = ReturnType<func1>,
+  URI extends URIS = Monad['_URI'],
+  Generics extends any[] = Monad['_A'],
+  A = Monad['_A'][0],
+  B = any,
+  C = any
+>(
+  a: func1,
+  b: (arg: A) => HKT<URI, ReplaceFirst<Generics, B>>,
+  c: (arg: B) => HKT<URI, ReplaceFirst<Generics, C>>
+): (
+  ...args: Parameters<func1>
+) => Type<Monad['_URI'], ReplaceFirst<Monad['_A'], B>>
+function kleisiFlow<
+  func1 extends (...args: any) => Chainable<any, any>,
+  Monad extends Chainable<any, any> = ReturnType<func1>,
+  URI extends URIS = Monad['_URI'],
+  Generics extends any[] = Monad['_A'],
+  A = Monad['_A'][0],
+  B = any,
+  C = any,
+  D = any
+>(
+  a: func1,
+  b: (arg: A) => HKT<URI, ReplaceFirst<Generics, B>>,
+  c: (arg: B) => HKT<URI, ReplaceFirst<Generics, C>>,
+  d: (arg: C) => HKT<URI, ReplaceFirst<Generics, D>>
+): (
+  ...args: Parameters<func1>
+) => Type<Monad['_URI'], ReplaceFirst<Monad['_A'], B>>
+
+function kleisiFlow<
+  T extends KleisliFunction<any, any, any>[],
+  M extends Chainable<any, any> = ReturnType<T[0]>
+>(...fns: T) {
+  return (...args: Parameters<T[0]>): Type<M['_URI'], any> => {
+    const [head, ...rest] = fns
+    return rest.reduce((prev, cur) => prev.chain(cur), (head as any)(...args))
+  }
+}
+
+// function kleisiFlow(...fns: KleisliFunction<'Maybe', number, number>[]) {
+//   return (...args: [value: number]): Maybe<number> => {
+//     const [head, ...rest] = fns
+//     return rest.reduce((prev, cur) => prev.chain(cur), head(...args))
+//   }
+// }
+
+// const kleisiFlow = <
+//   func1 extends (...args: any) => Chainable<any, any>,
+//   Monad extends Chainable<any, any> = ReturnType<func1>,
+//   URI extends URIS = Monad['_URI'],
+//   Generics extends any[] = Monad['_A'],
+//   A = Monad['_A'][0],
+//   B = any
+// >(
+//   a: func1,
+//   b: (arg: A) => HKT<URI extends infer U ? U : never, ReplaceFirst<Generics, B>>
+// ) => (
+//   ...args: Parameters<func1>
+// ): Type<Monad['_URI'], ReplaceFirst<Monad['_A'], B>> => {
+//   const res1 = a(...args)
+//   return res1.chain(b)
+// }
+
+const getNameTest = kleisiFlow(
+  (name: string) => Just(name.toUpperCase()),
+  (name) => Just(name),
+  (name) => Nothing,
+  (smh) => Nothing
+)
+const result = getNameTest('jason')
+/* 
+final case class Kleisli[F[_], A, B](run: A => F[B]) {
+  def compose[Z](k: Kleisli[F, Z, A])(implicit F: FlatMap[F]): Kleisli[F, Z, B] =
+    Kleisli[F, Z, B](z => k.run(z).flatMap(run))
+}
+*/
+result

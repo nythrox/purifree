@@ -1,8 +1,11 @@
 import { Tuple } from './Tuple'
 import { Maybe, Just, Nothing } from './Maybe'
 import { Order, orderToNumber } from './Function'
+import { ApKind } from './pointless/ap'
+import { of, ReplaceFirst, Type } from './pointless/hkt_tst'
+import { concat, ofAp } from './NonEmptyList'
 
-/** Returns Just the first element of an array or Nothing if there is none. If you don't want to work with a Maybe but still keep type safety, check out `NonEmptyList` */
+/** Returns Just the first element of an array or Nothing if there is none. If you don't want to work with a Maybe but still keep type safety, check out `List` */
 const head = <T>(list: T[]): Maybe<T> =>
   list.length > 0 ? Just(list[0]) : Nothing
 
@@ -89,7 +92,11 @@ function sort<T>(compare: (a: T, b: T) => Order, list?: T[]): any {
   }
 }
 
-export const List = {
+function ListConstructor<T extends any[]>(...values: T): List<T[number]> {
+  return ListImpl.of(...values) as any // TODO: correct List, NonEmptyArray, .of(), etc
+}
+
+export const List = Object.assign(ListConstructor, {
   init,
   uncons,
   at,
@@ -100,4 +107,72 @@ export const List = {
   findIndex,
   sum,
   sort
+})
+
+export const LIST_URI = 'List'
+export type LIST_URI = typeof LIST_URI
+
+declare module './pointless/hkt_tst' {
+  export interface URI2HKT<Types extends any[]> {
+    [LIST_URI]: List<Types[0]>
+  }
+}
+
+export interface List<T> extends Array<T> {
+  readonly _URI: LIST_URI
+  readonly _A: [T]
+  sequence<Ap extends ApKind<any, any>>(
+    this: List<Ap>,
+    of: of<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], List<Ap['_A'][0]>>>
+  map<U>(
+    this: List<T>,
+    callbackfn: (value: T, index: number, array: List<T>) => U,
+    thisArg?: any
+  ): List<U>
+  chain<U>(
+    this: List<T>,
+    callbackfn: (value: T, index: number, array: List<T>) => List<U>,
+    thisArg?: any
+  ): List<U>
+  reverse(this: List<T>): List<T>
+
+  joinM<T2>(this: List<List<T2>>): List<T2>
+}
+export class ListImpl<T> extends Array<T> implements List<T> {
+  _URI!: LIST_URI
+  _A!: [T]
+  sequence<Ap extends ApKind<any, any>>(
+    this: List<Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], List<Ap['_A'][0]>>> {
+    const initialState = of(([] as any) as List<Ap['_A'][0]>)
+    const cons = of(concat)
+    return this.reduce((tail, head) => cons.ap(head).ap(tail), initialState)
+  }
+
+  map<U>(
+    this: List<T>,
+    callbackfn: (value: T, index: number, array: List<T>) => U,
+    thisArg?: any
+  ): List<U> {
+    return this.map(callbackfn, thisArg)
+  }
+  chain<U>(
+    this: List<T>,
+    callbackfn: (value: T, index: number, array: List<T>) => List<U>,
+    thisArg?: any
+  ): List<U> {
+    return this.map(callbackfn, thisArg).joinM()
+  }
+
+  reverse(this: List<T>): List<T> {
+    return this.reverse()
+  }
+  joinM<T2>(this: List<List<T2>>): List<T2> {
+    return this.reduce(
+      (acc, val) => acc.concat(val) as List<T2>,
+      ([] as any) as List<T2>
+    )
+  }
 }

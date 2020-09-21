@@ -8,7 +8,7 @@ export type MaybePatterns<T, U> =
 interface AlwaysJust {
   kind: '$$MaybeAlwaysJust'
 }
-export const MAYBE_URI = 'Option'
+export const MAYBE_URI = 'Maybe'
 
 export type MAYBE_URI = typeof MAYBE_URI
 

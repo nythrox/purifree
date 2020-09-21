@@ -1,3 +1,4 @@
+
 export interface TupleTypeRef {
   <F, S>(fst: F, snd: S): Tuple<F, S>
   /** Applies two functions over a single value and constructs a tuple from the results */
@@ -21,7 +22,9 @@ declare module './pointless/hkt_tst' {
     [TUPLE_URI]: Tuple<Types[1], Types[0]>
   }
 }
-export interface Tuple<F, S> extends Iterable<F | S>, ArrayLike<F | S> {
+export interface Tuple<F, S>
+  extends Iterable<F | S>,
+    ArrayLike<F | S> {
   0: F
   1: S
 
