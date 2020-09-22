@@ -1,6 +1,6 @@
 import { Maybe, Just, Nothing } from './Maybe'
 import { EitherAsync } from './EitherAsync'
-import { Type } from './pointless/hkt_tst'
+import { Type } from './pointfree/hkt_tst'
 
 export interface MaybeAsyncTypeRef {
   /** Constructs a MaybeAsync object from a function that takes an object full of helpers that let you lift things into the MaybeAsync context and returns a Promise */
@@ -17,7 +17,7 @@ export interface MaybeAsyncTypeRef {
 export const MAYBE_ASYNC_URI = 'MaybeAsync'
 export type MAYBE_ASYNC_URI = typeof MAYBE_ASYNC_URI
 
-declare module './pointless/hkt_tst' {
+declare module './pointfree/hkt_tst' {
   export interface URI2HKT<Types extends any[]> {
     [MAYBE_ASYNC_URI]: MaybeAsync<Types[0]>
   }

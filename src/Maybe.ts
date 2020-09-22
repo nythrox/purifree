@@ -1,5 +1,5 @@
 import { Either, Left, Right } from './Either'
-import { Type } from './pointless/hkt_tst'
+import { Type } from './pointfree/hkt_tst'
 
 export type MaybePatterns<T, U> =
   | { Just: (value: T) => U; Nothing: () => U }
@@ -12,7 +12,7 @@ export const MAYBE_URI = 'Maybe'
 
 export type MAYBE_URI = typeof MAYBE_URI
 
-declare module './pointless/hkt_tst' {
+declare module './pointfree/hkt_tst' {
   export interface URI2HKT<Types extends any[]> {
     [MAYBE_URI]: Maybe<Types[0]>
   }

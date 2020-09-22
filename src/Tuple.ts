@@ -17,7 +17,7 @@ export interface TupleTypeRef {
 export const TUPLE_URI = 'Tuple'
 export type TUPLE_URI = typeof TUPLE_URI
 
-declare module './pointless/hkt_tst' {
+declare module './pointfree/hkt_tst' {
   export interface URI2HKT<Types extends any[]> {
     [TUPLE_URI]: Tuple<Types[1], Types[0]>
   }

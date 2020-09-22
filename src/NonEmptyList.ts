@@ -1,8 +1,8 @@
 import { Either, Right } from './Either'
 import { Maybe, Just, Nothing } from './Maybe'
-import { ApKind } from './pointless/ap'
-import { of, HKT, ReplaceFirst, Type, URIS } from './pointless/hkt_tst'
-import { SequenceableKind } from './pointless/sequence'
+import { ApKind } from './pointfree/ap'
+import { of, HKT, ReplaceFirst, Type, URIS } from './pointfree/hkt_tst'
+import { SequenceableKind } from './pointfree/sequence'
 import { Tuple } from './Tuple'
 export type NonEmptyListCompliant<T> = T[] & { 0: T }
 
@@ -80,7 +80,7 @@ class NonEmptyListImpl<T> extends Array<T> implements NonEmptyList<T> {
 export const NON_EMPTY_LIST_URI = 'NonEmptyList'
 export type NON_EMPTY_LIST_URI = typeof NON_EMPTY_LIST_URI
 
-declare module './pointless/hkt_tst' {
+declare module './pointfree/hkt_tst' {
   export interface URI2HKT<Types extends any[]> {
     [NON_EMPTY_LIST_URI]: NonEmptyList<Types[0]>
   }

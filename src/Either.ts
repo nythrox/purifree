@@ -8,7 +8,7 @@ export const EITHER_URI = 'Either'
 
 export type EITHER_URI = typeof EITHER_URI
 
-declare module './pointless/hkt_tst' {
+declare module './pointfree/hkt_tst' {
   export interface URI2HKT<Types extends any[]> {
     [EITHER_URI]: Either<Types[1], Types[0]>
   }

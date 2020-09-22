@@ -1,8 +1,8 @@
 import { Tuple } from './Tuple'
 import { Maybe, Just, Nothing } from './Maybe'
 import { Order, orderToNumber } from './Function'
-import { ApKind } from './pointless/ap'
-import { of, ReplaceFirst, Type } from './pointless/hkt_tst'
+import { ApKind } from './pointfree/ap'
+import { of, ReplaceFirst, Type } from './pointfree/hkt_tst'
 import { concat, ofAp } from './NonEmptyList'
 
 /** Returns Just the first element of an array or Nothing if there is none. If you don't want to work with a Maybe but still keep type safety, check out `List` */
@@ -112,7 +112,7 @@ export const List = Object.assign(ListConstructor, {
 export const LIST_URI = 'List'
 export type LIST_URI = typeof LIST_URI
 
-declare module './pointless/hkt_tst' {
+declare module './pointfree/hkt_tst' {
   export interface URI2HKT<Types extends any[]> {
     [LIST_URI]: List<Types[0]>
   }

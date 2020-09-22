@@ -1,12 +1,12 @@
 import { Either, Left, Right } from './Either'
 import { MaybeAsync } from './MaybeAsync'
-import { GeneratableKind } from './pointless/do'
-import { Type } from './pointless/hkt_tst'
+import { GeneratableKind } from './pointfree/do'
+import { Type } from './pointfree/hkt_tst'
 
 export const EITHER_ASYNC_URI = 'EitherAsync'
 export type EITHER_ASYNC_URI = typeof EITHER_ASYNC_URI
 
-declare module './pointless/hkt_tst' {
+declare module './pointfree/hkt_tst' {
   export interface URI2HKT<Types extends any[]> {
     [EITHER_ASYNC_URI]: EitherAsync<Types[1], Types[0]>
   }
