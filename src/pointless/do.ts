@@ -75,13 +75,15 @@ type h = Chainable<'EitherAsync', [never, string]>['chain']
 type v = Chainable<'EitherAsync', [number, never]>
 type v2 = EitherAsync<number, never>
 type test = EitherAsync<never, number>['_A'] extends any ? true : false
-const v = Do(function* () {
-  const h = yield* EitherAsync.liftEither(Right(10))
-  const w = yield* EitherAsync.liftEither(Left(Error()))
-  // const zw = yield* EitherAsync.liftEither(Right('hi'))
-  // const hz = yield* EitherAsync.liftEither(Left('err' + h + w))
-  // return 'jasno' + hz
+
+const result = Do(function* () {
+  const h = yield* Right(10)
+  const w = yield* Left(Error())
+  const zw = yield* Right('hi')
+  return 'jasno' + zw
 })
+
+result
 
 const restura = Do(function* () {
   const user = yield* EitherAsync.liftEither(

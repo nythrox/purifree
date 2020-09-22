@@ -1,3 +1,6 @@
+import { NoInfer, Return } from 'Function/_api'
+import { Any, F } from 'ts-toolbelt'
+import { Maybe, unknown } from '..'
 import { Either, Left, Right } from '../Either'
 import { EitherAsync } from '../EitherAsync'
 import { Tuple } from '../Tuple'
@@ -10,6 +13,7 @@ import {
   ReplaceFirstAndSecond,
   SumSecondArg,
   Type,
+  TypeFromHKT,
   URIS
 } from './hkt_tst'
 import { FunctorKind } from './map'
@@ -42,9 +46,6 @@ export const chain = <
 ) => (fa: Monad): Type<URI, ReplaceFirst<Generics, B>> => {
   return fa.chain(f)
 }
-
-type sla = HKT<'EitherAsync', any> extends HKT<'Either', any> ? true : false
-type wo = EitherAsync<any, any>['_URI']
 /**
  * This chain is more flexible: allows the L argument in Either<L,R> to be of a different type, and the new returned monad is Either<L1 | L2, R>.
  * Good for error reporting: Either<DatabaseError | ValidationError, User>
