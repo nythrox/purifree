@@ -1,4 +1,4 @@
-import { Left, Right } from '..'
+import { Just, Left, Right } from '..'
 import { EitherAsync } from '../EitherAsync'
 import { Chainable } from './chain'
 import { AssertEqual, HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
@@ -14,7 +14,7 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   ? I
   : never
 
-type IsUnion<Key> =
+export type IsUnion<Key> =
   // If this is a simple type UnionToIntersection<Key> will be the same type, otherwise it will an intersection of all types in the union and probably will not extend `Key`
   [Key] extends [UnionToIntersection<Key>] ? false : true
 
@@ -24,15 +24,13 @@ export function DoFlex<
   URI extends URIS = Generatable['_URI'],
   R = any
 >(
-  fun: () => Generator<Generatable, R, any>,
-  ...ERROR_Cannot_have_different_monads_of_different_types_in_do_notation: IsUnion<
-    URI
-  > extends true
-    ? ['Cannot have different monads of different types in do* notation.']
-    : []
-): IsUnion<URI> extends true
-  ? never
-  : Type<URI, ReplaceFirst<Generatable['_A'], R>> {
+  fun: IsUnion<URI> extends false
+    ? () => Generator<Generatable, R, any>
+    : [
+        'ERROR: Cannot have monads of different types in do* notation. Different monads found: ',
+        URI
+      ]
+): Type<URI, ReplaceFirst<Generatable['_A'], R>> {
   return null as any
 }
 
@@ -43,18 +41,20 @@ export function Do<
   URI extends URIS = Generatable['_URI'],
   Rest = Generatable['_A'] extends [infer _A, ...infer Rest] ? Rest : never,
   SecondaryGenericsError = IsUnion<Rest> extends true ? true : false,
-  MultipleMonadsError = IsUnion<URI> extends true ? true : false,
-  Err = Rest extends infer _Delay
-    ? MultipleMonadsError extends true
-      ? 'Cannot have different monads of different types in do* notation.'
-      : SecondaryGenericsError extends true
-      ? 'All secondary generics must be of the same type.'
-      : false
-    : never
+  MultipleMonadsError = IsUnion<URI> extends true ? true : false
 >(
-  fun: () => Generator<Generatable, R, any>,
-  ...ERROR: Err extends string ? [Err, never] : []
-): Err extends string ? Err : Type<URI, ReplaceFirst<Generatable['_A'], R>> {
+  fun: MultipleMonadsError extends true
+    ? [
+        'ERROR: Cannot have monads of different types in do* notation. Different monads found:',
+        URI
+      ]
+    : SecondaryGenericsError extends true
+    ? [
+        'ERROR: All secondary generics must be of the same type. Different generics found: ',
+        Rest
+      ]
+    : () => Generator<Generatable, R, any>
+): Type<URI, ReplaceFirst<Generatable['_A'], R>> {
   return null as any
 }
 
@@ -79,11 +79,18 @@ type test = EitherAsync<never, number>['_A'] extends any ? true : false
 const result = Do(function* () {
   const h = yield* Right(10)
   const w = yield* Left(Error())
+  // yield* Just(Error())
   const zw = yield* Right('hi')
   return 'jasno' + zw
 })
 
-result
+const resultFlex = DoFlex(function* () {
+  const h = yield* Right(10)
+  const w = yield* Left(Error())
+  const zw = yield* Right('hi')
+  const w0 = yield* Left('sstring')
+  return 'jasno' + zw
+})
 
 const restura = Do(function* () {
   const user = yield* EitherAsync.liftEither(

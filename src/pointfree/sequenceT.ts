@@ -1,42 +1,62 @@
-import { Either, Just, Maybe, NonEmptyList, Right } from '..'
+import { A } from 'ts-toolbelt'
+import { Either, Just, List, Maybe, NonEmptyList, Right } from '..'
+import { ofAp } from '../NonEmptyList'
 import { ApKind } from './ap'
+import { IsUnion } from './do'
 import { pipe } from './function-utils'
 import { HKT, ReplaceFirst, Type, URIS, of } from './hkt_tst'
-
-export interface SequenceableTKind<F extends URIS, A extends any[]>
-  extends HKT<F, A> {
-  // this is [ Either<L,R> ]
-  readonly sequence: <Ap extends ApKind<any, any>>(
-    this: Type<F, ReplaceFirst<A, Ap>>,
-    of: of<Ap['_URI']>
-  ) => Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Type<F, Ap['_A'][0]>>>
-}
-export const sequence = <
-  Sequenceable extends SequenceableTKind<any, [ApKind<any, any>, ...any]>,
-  Values = Sequenceable extends HKT<any, infer Args> ? Args : never,
-  Ap0 = Values extends any[] ? Values[0] : never,
-  Ap = Ap0 extends ApKind<infer ApUri, infer ApArgs>
-    ? ApKind<ApUri, ApArgs>
+export const sequenceT = <Of extends ofAp<any>>(of: Of) => <
+  Ap extends ApKind<any, any> = ReturnType<Of>,
+  T extends Array<ApKind<Ap['_URI'], any>> = any,
+  Rest extends any[] = T[number]['_A'] extends [infer _Head, ...infer Rest]
+    ? Rest
     : never
 >(
-  of: Ap extends ApKind<any, any> ? of<Ap['_URI']> : never
-) => (
-  seq: Sequenceable
-): Ap extends ApKind<any, any>
-  ? Type<
+  ...t: IsUnion<Rest> extends true
+    ? [
+        'ERROR: All secondary generics must be of the same type. Different generics found: ',
+        Rest[number]
+      ][]
+    : T & {
+        readonly 0: Ap
+      }
+): IsUnion<Rest> extends true
+  ? [
+      'ERROR: All secondary generics must be of the same type. Different generics found: ',
+      Rest[number]
+    ]
+  : Type<
       Ap['_URI'],
-      ReplaceFirst<Ap['_A'], Type<Sequenceable['_URI'], Ap['_A']>>
-    >
-  : never => {
-  return seq.sequence(of)
+      ReplaceFirst<
+        T[number]['_A'],
+        { [K in keyof T]: T[K] extends ApKind<any, infer A> ? A[0] : never }
+      >
+    > => {
+  return List(t as T).sequence(of)
 }
 
-const seqtest = pipe(
-  [Right(0)] as NonEmptyList<Either<never, number>>,
-  sequence(Either.of)
-)
+export const sequenceTFlex = <Of extends ofAp<any>>(of: Of) => <
+  Ap extends ApKind<any, any> = ReturnType<Of>,
+  T extends Array<ApKind<Ap['_URI'], any>> = any
+>(
+  ...t: T & {
+    readonly 0: Ap
+  }
+): Type<
+  Ap['_URI'],
+  ReplaceFirst<
+    T[number]['_A'],
+    { [K in keyof T]: T[K] extends ApKind<any, infer A> ? A[0] : never }
+  >
+> => {
+  return List(t as T).sequence(of)
+}
 
-const seqtest2 = pipe(
-  [Just(0)] as NonEmptyList<Maybe<number>>,
-  sequence(Maybe.of)
+const resErr = sequenceT(Either.of)(
+  // Right<string, string>('hello'),
+  Right<number, Error>(2)
+)
+const resOK = sequenceT(Either.of)(
+  Right<string, Error>('hello'),
+  Right<number, Error>(2)
 )
