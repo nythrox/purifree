@@ -11,6 +11,7 @@ import {
 import { ApKind } from './ap'
 import { pipe } from './function-utils'
 import { HKT, ReplaceFirst, Type, URIS, of } from './hkt_tst'
+import { traverse } from './traverse'
 
 export interface SequenceableKind<F extends URIS, A extends any[]>
   extends HKT<F, A> {
@@ -43,3 +44,8 @@ export const sequence = <
 const seqtest = pipe(List(Right(0)), sequence(Either.of))
 
 const seqtest2 = pipe(NonEmptyList(Just(0)), sequence(Maybe.of))
+
+const seqtestL = pipe(
+  Right(1),
+  traverse(List.of, (num) => List(num * 10))
+)

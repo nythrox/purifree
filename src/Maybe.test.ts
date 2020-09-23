@@ -10,7 +10,7 @@ describe('Maybe', () => {
   test('of', () => {
     expect(Maybe.of(5)).toEqual(Just(5))
     expect(Maybe['fantasy-land/of'](5)).toEqual(Just(5))
-  })
+  })  
 
   test('fromNullable', () => {
     expect(Maybe.fromNullable(null)).toEqual(Nothing)

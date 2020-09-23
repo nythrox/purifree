@@ -188,15 +188,15 @@ const oneNumber = (s: string): Either<Error, string> =>
 
 const validatePassword = createValidator(minLength, oneCapital, oneNumber)
 
-const test = pipe(
-  Right('jason'),
-  chainFlex(validatePassword),
-  toMaybe(),
-  filter((password) => password.length > 5)
-)
+// const test = pipe(
+//   Right('jason'),
+//   chainFlex(validatePassword),
+//   toMaybe(),
+//   filter((password) => password.length > 5)
+// )
 
-const list = pipe(
-  List(1, 2, 3, 4, 5),
-  chain((num) => List(num * 2)),
-  reduce((a, b) => a + b, 0)
-)
+// const list = pipe(
+//   List(1, 2, 3, 4, 5),
+//   chain((num) => List(num * 2)),
+//   reduce((a, b) => a + b, 0)
+// )

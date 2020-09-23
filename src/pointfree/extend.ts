@@ -14,7 +14,7 @@ export const extend = <ExtendableM extends Extendable<any, any>, B = any>(
   return fa.extend(f)
 }
 
-const test = pipe(
-  Right(5),
-  extend((e) => e.inspect())
-)
+// const test = pipe(
+//   Right(5),
+//   extend((e) => e.inspect())
+// )

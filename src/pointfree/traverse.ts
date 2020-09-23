@@ -35,7 +35,7 @@ export const traverse = <
   return trav.traverse(of, f)
 }
 
-const test = pipe(
-  NonEmptyList(1, 2, 3, 4, 5),
-  traverse(Either.of, (n) => Right(n))
-)
+// const test = pipe(
+//   NonEmptyList(1, 2, 3, 4, 5),
+//   traverse(Either.of, (n) => Right(n))
+// )

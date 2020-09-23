@@ -124,7 +124,7 @@ const hi = pipe(
   inferChain2((num) => Right(num.toString()))
 )
 
-const toString = makePointFree('toString')
-const valueOf = makePointFree('valueOf')
-const map = makePointFree('map') // gets <unkown> because of generics :(
-const v = pipe(0, toString(), valueOf())
+// const toString = makePointFree('toString')
+// const valueOf = makePointFree('valueOf')
+// const map = makePointFree('map') // gets <unkown> because of generics :(
+// const v = pipe(0, toString(), valueOf())

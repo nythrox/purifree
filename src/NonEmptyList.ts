@@ -46,28 +46,42 @@ export interface NonEmptyList<T> extends NonEmptyArray<T> {
   ): NonEmptyList<U>
   reverse(this: NonEmptyList<T>): NonEmptyList<T>
 
+  ap<R2>(other: NonEmptyList<(value: T) => R2>): NonEmptyList<R2>
+
   joinM<T2>(this: NonEmptyList<NonEmptyList<T2>>): NonEmptyList<T2>
   'fantasy-land/traverse': this['traverse']
   'fantasy-land/sequence': this['sequence']
   'fantasy-land/map': this['map']
   'fantasy-land/chain': this['chain']
+  'fantasy-land/ap': this['ap']
 }
 export type ofAp<URI extends URIS> = <T>(value: T) => ApKind<URI, [T, ...any]>
 export const concat = <T>(arr: Array<T>) => (arr2: Array<T>) => arr.concat(arr2)
-class NonEmptyListImpl<T> extends Array<T> implements NonEmptyList<T> {
+export class NonEmptyListImpl<T> extends Array<T> implements NonEmptyList<T> {
   0: T
   readonly _URI!: NON_EMPTY_LIST_URI
   readonly _A!: [T]
 
-  constructor(...items: T[]) {
-    super(...items)
+  ap<R2>(other: NonEmptyList<(value: T) => R2>): NonEmptyList<R2> {
+    return other.chain((f) => this.map(f))
   }
 
-  'fantasy-land/traverse'= this['traverse']
-  'fantasy-land/sequence'= this['sequence']
-  'fantasy-land/map'= this['map']
-  'fantasy-land/chain'= this['chain']
-  
+  'fantasy-land/ap'<R2>(
+    other: NonEmptyList<(value: T) => R2>
+  ): NonEmptyList<R2> {
+    return this.ap(other)
+  }
+
+  'fantasy-land/traverse'<
+    URI extends URIS,
+    AP extends ApKind<any, any> = ApKind<URI, any>
+  >(
+    of: ofAp<URI>,
+    f: (a: T) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], NonEmptyList<AP['_A'][0]>>> {
+    return this.traverse(of, f)
+  }
+
   traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
     of: ofAp<URI>,
     f: (a: T) => AP
@@ -80,20 +94,29 @@ class NonEmptyListImpl<T> extends Array<T> implements NonEmptyList<T> {
     ) as any
   }
 
-  static of<T>(...items: T[]) {
-    return new NonEmptyListImpl(...items) as NonEmptyList<T>
-  }
-  static from<T extends any[]>(array: T) {
-    return new NonEmptyListImpl(...array) as NonEmptyList<T[number]>
-  }
 
+  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
+    this: NonEmptyList<Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], NonEmptyList<Ap['_A'][0]>>> {
+    return this.sequence(of)
+  }
   sequence<Ap extends ApKind<any, any>>(
     this: NonEmptyList<Ap>,
     of: ofAp<Ap['_URI']>
-  ) {
-    const initialState = of(([] as any) as NonEmptyList<Ap['_A'][0]>)
-    const cons = of(concat)
-    return this.reduce((tail, head) => cons.ap(head).ap(tail), initialState)
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], NonEmptyList<Ap['_A'][0]>>> {
+    // const initialState = of(([] as any) as NonEmptyList<Ap['_A'][0]>)
+    // const cons = of(concat)
+    // return this.reduce((tail, head) => cons.ap(head).ap(tail), initialState)
+    return this.traverse(of, (e) => e)
+  }
+
+  'fantasy-land/map'<U>(
+    this: NonEmptyList<T>,
+    callbackfn: (value: T, index: number, array: NonEmptyList<T>) => U,
+    thisArg?: any
+  ): NonEmptyList<U> {
+    return this.map(callbackfn, thisArg)
   }
   map<U>(
     this: NonEmptyList<T>,
@@ -101,6 +124,18 @@ class NonEmptyListImpl<T> extends Array<T> implements NonEmptyList<T> {
     thisArg?: any
   ): NonEmptyList<U> {
     return this.map(callbackfn, thisArg)
+  }
+
+  'fantasy-land/chain'<U>(
+    this: NonEmptyList<T>,
+    callbackfn: (
+      value: T,
+      index: number,
+      array: NonEmptyList<T>
+    ) => NonEmptyList<U>,
+    thisArg?: any
+  ): NonEmptyList<U> {
+    return this.chain(callbackfn, thisArg)
   }
   chain<U>(
     this: NonEmptyList<T>,
@@ -161,9 +196,10 @@ function NonEmptyListConstructor<T, Rest extends T[]>(
 ): NonEmptyList<T>
 function NonEmptyListConstructor(...args: any[]) {
   if (args.length === 1 && Array.isArray(args[0]) && args[0].length > 0) {
+    console.log('returning NonEmptyListImpl.from')
     return NonEmptyListImpl.from(args[0])
   }
-  return NonEmptyListImpl.of(...args)
+  return (NonEmptyListImpl as any).of(...args)
 }
 
 export const NonEmptyList: NonEmptyListTypeRef = Object.assign(
@@ -185,20 +221,19 @@ export const NonEmptyList: NonEmptyListTypeRef = Object.assign(
     last: <T>(list: NonEmptyArray<T>): T => list[list.length - 1],
     isNonEmpty: <T>(list: T[]): list is NonEmptyArray<T> => list.length > 0,
     tail: <T>(list: NonEmptyArray<T>): T[] => list.slice(1)
-  },
-  NonEmptyListImpl
+  }
 )
 
-const vv = NonEmptyList([1]).chain(() => NonEmptyList(['hi']))
-const slaaa = NonEmptyList(1, 2, 3, 4, 5)
-const hoi = NonEmptyList(List(1, 2, 3))
-const slaa2 = NonEmptyList('hola')
-const slaa3 = NonEmptyList(['hola'], ['holo'])
-const slaa5 = NonEmptyList(['hoo'])
-const slaa6 = NonEmptyList(NonEmptyList(1, 2, 3, 4))
-const list = NonEmptyList(Right(0))
-const v = list.sequence(Either.of)
+// const vv = NonEmptyList([1]).chain(() => NonEmptyList(['hi']))
+// const slaaa = NonEmptyList(1, 2, 3, 4, 5)
+// const hoi = NonEmptyList(List(1, 2, 3))
+// const slaa2 = NonEmptyList('hola')
+// const slaa3 = NonEmptyList(['hola'], ['holo'])
+// const slaa5 = NonEmptyList(['hoo'])
+// const slaa6 = NonEmptyList(NonEmptyList(1, 2, 3, 4))
+// const list = NonEmptyList(Right(0))
+// const v = list.sequence(Either.of)
 
-const test = NonEmptyList(1, 2, 3).traverse(Either.of, (num) => Right(num))
+// const test = NonEmptyList(1, 2, 3).traverse(Either.of, (num) => Right(num))
 
-const test2 = NonEmptyList(1, 2, 3).traverse(Maybe.of, (num) => Just(num))
+// const test2 = NonEmptyList(1, 2, 3).traverse(Maybe.of, (num) => Just(num))

@@ -123,11 +123,11 @@ describe('EitherAsync', () => {
 
   test('chain (with PromiseLike)', async () => {
     const newEitherAsync = EitherAsync(() => Promise.resolve(5)).chain((_) =>
-      Promise.resolve(Right('val'))
+      EitherAsync.liftEither(Right('val'))
     )
     const newEitherAsync2 = EitherAsync(() => Promise.resolve(5))[
       'fantasy-land/chain'
-    ]((_) => Promise.resolve(Right('val')))
+    ]((_) => EitherAsync.liftEither(Right('val')))
 
     expect(await newEitherAsync.run()).toEqual(Right('val'))
     expect(await newEitherAsync2.run()).toEqual(Right('val'))
@@ -148,10 +148,10 @@ describe('EitherAsync', () => {
   test('chainLeft (with PromiseLike)', async () => {
     const newEitherAsync = EitherAsync(() =>
       Promise.resolve(5)
-    ).chainLeft((_) => Promise.resolve(Right(7)))
+    ).chainLeft((_) => EitherAsync.liftEither(Right(7)))
     const newEitherAsync2 = EitherAsync<number, number>(() =>
       Promise.reject(5)
-    ).chainLeft((e) => Promise.resolve(Right(e + 1)))
+    ).chainLeft((e) => EitherAsync.liftEither(Right(e + 1)))
 
     expect(await newEitherAsync.run()).toEqual(Right(5))
     expect(await newEitherAsync2.run()).toEqual(Right(6))

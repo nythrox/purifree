@@ -6,6 +6,8 @@ import { of, ReplaceFirst, Type, URIS } from './pointfree/hkt_tst'
 import { concat, NonEmptyList, ofAp } from './NonEmptyList'
 import { Either, Right } from '.'
 import { EitherAsync } from './EitherAsync'
+import { pipe } from './pointfree/function-utils'
+import { map } from './pointfree/map'
 
 /** Returns Just the first element of an array or Nothing if there is none. If you don't want to work with a Maybe but still keep type safety, check out `List` */
 const head = <T>(list: T[]): Maybe<T> =>
@@ -120,6 +122,9 @@ export interface List<T> extends Array<T> {
     callbackfn: (value: T, index: number, array: List<T>) => U,
     thisArg?: any
   ): List<U>
+
+  ap<R2>(other: List<(value: T) => R2>): List<R2>
+
   chain<U>(
     this: List<T>,
     callbackfn: (value: T, index: number, array: List<T>) => List<U>,
@@ -128,23 +133,25 @@ export interface List<T> extends Array<T> {
   reverse(this: List<T>): List<T>
 
   joinM<T2>(this: List<List<T2>>): List<T2>
-  
+
   'fantasy-land/traverse': this['traverse']
   'fantasy-land/sequence': this['sequence']
   'fantasy-land/map': this['map']
   'fantasy-land/chain': this['chain']
+  'fantasy-land/ap': this['ap']
 }
 export class ListImpl<T> extends Array<T> implements List<T> {
   _URI!: LIST_URI
   _A!: [T]
-  constructor(...items: T[]) {
-    super(...items)
-  }
+  'fantasy-land/traverse' = this['traverse']
+  'fantasy-land/sequence' = this['sequence']
+  'fantasy-land/map' = this['map']
+  'fantasy-land/chain' = this['chain']
+  'fantasy-land/ap' = this['ap']
 
-  'fantasy-land/traverse'= this['traverse']
-  'fantasy-land/sequence'= this['sequence']
-  'fantasy-land/map'= this['map']
-  'fantasy-land/chain'= this['chain']
+  ap<R2>(other: List<(value: T) => R2>): List<R2> {
+    return other.chain((f) => this.map(f))
+  }
   traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
     of: ofAp<URI>,
     f: (a: T) => AP
@@ -156,19 +163,14 @@ export class ListImpl<T> extends Array<T> implements List<T> {
       initialState
     ) as any
   }
-  static of<T>(...items: T[]): List<T> {
-    return new ListImpl(...items)
-  }
-  static from<T extends any[]>(array: T) {
-    return new ListImpl(...array) as List<T[number]>
-  }
   sequence<Ap extends ApKind<any, any>>(
     this: List<Ap>,
     of: ofAp<Ap['_URI']>
   ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], List<Ap['_A'][0]>>> {
-    const initialState = of(new ListImpl<Ap['_A'][0]>())
-    const cons = of(concat)
-    return this.reduce((tail, head) => cons.ap(head).ap(tail), initialState)
+    // const initialState = of(new ListImpl<Ap['_A'][0]>())
+    // const cons = of(concat)
+    // return this.reduce((tail, head) => cons.ap(head).ap(tail), initialState)
+    return this.traverse(of, (e) => e)
   }
 
   map<U>(
@@ -178,6 +180,7 @@ export class ListImpl<T> extends Array<T> implements List<T> {
   ): List<U> {
     return this.map(callbackfn, thisArg)
   }
+
   chain<U>(
     this: List<T>,
     callbackfn: (value: T, index: number, array: List<T>) => List<U>,
@@ -222,5 +225,5 @@ export const List = Object.assign(ListConstructor, {
   sort
 })
 
-const v = List(NonEmptyList(1, 2))
-const owo = List(EitherAsync.liftEither(Right(10))).sequence(EitherAsync.of)
+// const v = List(NonEmptyList(1, 2))
+// const owo = List(EitherAsync.liftEither(Right(10))).sequence(EitherAsync.of)

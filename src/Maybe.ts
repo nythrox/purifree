@@ -547,7 +547,7 @@ const nothing = new Nothing()
 
 export { just as Just, nothing as Nothing }
 
-const v = just(5)
-const sla = v.traverse(Either.of, (num) => Right(num.toString()))
-const res = sla.sequence(Maybe.of)
-const oi = pipe(res, sequence(Either.of))
+// const v = just(5)
+// const sla = v.traverse(Either.of, (num) => Right(num.toString()))
+// const res = sla.sequence(Maybe.of)
+// const oi = pipe(res, sequence(Either.of))

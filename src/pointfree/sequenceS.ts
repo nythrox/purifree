@@ -33,7 +33,18 @@ export const sequenceS = <Of extends ofAp<any>>(of: Of) => <
         }
       >
     > => {
-  return 0 as any
+  const entries = Object.entries(r) as [string, Ap][]
+  const newObj = of({})
+  const add = (key: string) =>
+    of((obj: Record<string, any>) => (value: any) => ((obj[key] = value), obj))
+  // prev: Right({}), curr: ["name",Right("jason")]
+  // Right({}).ap(add(key)) :: Right((value) => (obj[key]=value,obj))
+  // Right({}).app(add(key)).ap(Right("jason")) :: Right({ name: "jason" })
+  const res = entries.reduce(
+    (prev, [key, value]) => prev.ap(add(key)).ap(value),
+    newObj
+  )
+  return res as any
 }
 export const sequenceSFlex = <Of extends ofAp<any>>(of: Of) => <
   Ap extends ApKind<any, any> = ReturnType<Of>,

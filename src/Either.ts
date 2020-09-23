@@ -581,10 +581,10 @@ export const isRight: IsRight = <L, R>(
   either: Either<L, R>
 ): either is Either<never, R> => either.isRight()
 
-const v = right(0).traverse(Maybe.of, (n) => Just(n + 'n'))
-const sla = pipe(
-  right(0),
-  traverse(Maybe.of, (n) => Just(n + 'n'))
-)
+// const v = right(0).traverse(Maybe.of, (n) => Just(n + 'n'))
+// const sla = pipe(
+//   right(0),
+//   traverse(Maybe.of, (n) => Just(n + 'n'))
+// )
 
-const hoi = right(Just(0)).sequence(Maybe.of)
+// const hoi = right(Just(0)).sequence(Maybe.of)
