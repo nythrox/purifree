@@ -87,16 +87,13 @@ export interface NonEmptyListTypeRef {
   /** The same function as \`List#tail\`, but it doesn't return a Maybe as a NonEmptyArray will always have a tail (although it may be of length 0) */
   tail<T>(list: NonEmptyArray<T>): T[]
 }
-function NonEmptyListConstructor<T extends NonEmptyArray<any>>(
-  list: T
-): NonEmptyList<T[number]>
+function NonEmptyListConstructor<T>(list: NonEmptyArray<T>): NonEmptyList<T>
 function NonEmptyListConstructor<T, Rest extends T[]>(
   value1: T,
   ...values: Rest
 ): NonEmptyList<T>
 function NonEmptyListConstructor(...args: any[]) {
   if (args.length === 1 && Array.isArray(args[0]) && args[0].length > 0) {
-    console.log('returning NonEmptyListImpl.from')
     return ListImpl.from(args[0])
   }
   return (ListImpl as any).of(...args)
@@ -126,7 +123,7 @@ export const NonEmptyList: NonEmptyListTypeRef = Object.assign(
 
 // const vv = NonEmptyList([1]).chain(() => NonEmptyList(['hi']))
 // const slaaa = NonEmptyList(1, 2, 3, 4, 5)
-// const hoi = NonEmptyList(List(1, 2, 3))
+// const hoi = NonEmptyList(List(List([1, 2, 3, 4, 5])))
 // const slaa2 = NonEmptyList('hola')
 // const slaa3 = NonEmptyList(['hola'], ['holo'])
 // const slaa5 = NonEmptyList(['hoo'])

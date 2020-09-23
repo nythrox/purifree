@@ -229,24 +229,21 @@ export class ListImpl<T> extends Array<T> implements List<T> {
   }
 }
 
-function ListConstructor<T extends NonEmptyArray<any>>(
-  list: T
-): NonEmptyList<T[number]>
-function ListConstructor<T extends Array<T[number]>>(list: T): List<T[number]>
+function ListConstructor<T>(list: NonEmptyArray<T>): List<T> & { 0: T }
+function ListConstructor<T>(list: T[]): List<T>
 function ListConstructor<T, Rest extends T[]>(
   value1: T,
   ...values: Rest
-): NonEmptyList<T>
-function ListConstructor<T>(): List<T>
+): List<T> & { 0: T }
+function ListConstructor<T extends any[]>(...values: T): List<T[number]>
 function ListConstructor(...args: any[]) {
-  if (args.length === 1 && Array.isArray(args[0]) && args[0].length > 0) {
+  if (args.length === 1 && Array.isArray(args[0])) {
     return ListImpl.from(args[0])
   }
   return ListImpl.of(...args)
 }
-
 export const List = Object.assign(ListConstructor, {
-  of: <T>(val: T) => ListImpl.of(val),
+  of: <T>(val: T) => ListImpl.of(val) as List<T> & { 0: T },
   init,
   uncons,
   at,
