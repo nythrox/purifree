@@ -151,9 +151,9 @@ function kleisiFlow<
 // }
 const getNameTest = kleisiFlow(
   (name: string) => Just(name.toUpperCase()),
-  (name) => Just(5),
-  (name) => Just(5),
-  (smh) => Nothing
+  (_name) => Just(5),
+  (_name) => Just(5),
+  (_smh) => Nothing
 )
 const result = getNameTest('jason')
 

@@ -1,8 +1,9 @@
 import { Right } from '..'
 import { pipe } from './function-utils'
 import { HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
+import { FunctorKind } from './map'
 
-export interface ApKind<F extends URIS, A extends any[]> extends HKT<F, A> {
+export interface ApKind<F extends URIS, A extends any[]> extends FunctorKind<F, A> {
   readonly ap: <R2>(
     other: Type<F, ReplaceFirst<A, (value: A[0]) => R2>>
   ) => Type<F, ReplaceFirst<A, R2>>

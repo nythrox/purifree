@@ -17,7 +17,7 @@ export const mapLeft = <MapLeftM extends MapLeftable<any, any>, B = any>(
 
 const mleft = pipe(
   Right(10),
-  mapLeft((n) => Error('wrong'))
+  mapLeft((_n) => Error('wrong'))
 )
 
 

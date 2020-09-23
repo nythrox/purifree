@@ -43,7 +43,7 @@ export function Do<
   SecondaryGenericsError = IsUnion<Rest> extends true ? true : false,
   MultipleMonadsError = IsUnion<URI> extends true ? true : false
 >(
-  fun: MultipleMonadsError extends true
+  _fun: MultipleMonadsError extends true
     ? [
         'ERROR: Cannot have monads of different types in do* notation. Different monads found:',
         URI

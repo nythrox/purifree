@@ -30,7 +30,7 @@ export const bimap = <BimapM extends Bimappable<any, any>, B = any, C = any>(
 const bmaptest = pipe(
   EitherAsync.liftEither(Right(10)),
   bimap(
-    (err) => new Error(),
+    (_err) => new Error(),
     (num) => EitherAsync.liftEither<Error, string>(Right(num.toString()))
   ),
   chain((e) => e)
@@ -38,7 +38,7 @@ const bmaptest = pipe(
 const bmaptest2 = pipe(
   Right(10),
   bimap(
-    (err) => new Error(),
+    (_err) => new Error(),
     (num) => num.toString()
   )
 )

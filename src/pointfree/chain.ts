@@ -95,5 +95,5 @@ const restura2 = pipe(
   // ),
   // (e) => {}
   // map(e => {})
-  chain((user) => Left(Error('whataever')))
+  chain((_user) => Left(Error('whataever')))
 )

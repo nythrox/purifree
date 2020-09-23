@@ -2,7 +2,7 @@ import { Tuple } from './Tuple'
 import { Maybe, Just, Nothing } from './Maybe'
 import { Order, orderToNumber } from './Function'
 import { ApKind } from './pointfree/ap'
-import { of, ReplaceFirst, Type } from './pointfree/hkt_tst'
+import { of, ReplaceFirst, Type, URIS } from './pointfree/hkt_tst'
 import { concat, NonEmptyList, ofAp } from './NonEmptyList'
 import { Either, Right } from '.'
 
@@ -106,8 +106,14 @@ export interface List<T> extends Array<T> {
   readonly _A: [T]
   sequence<Ap extends ApKind<any, any>>(
     this: List<Ap>,
-    of: of<Ap['_URI']>
+    of: ofAp<Ap['_URI']>
   ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], List<Ap['_A'][0]>>>
+
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    of: ofAp<URI>,
+    f: (a: T) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], List<AP['_A'][0]>>>
+
   map<U>(
     this: List<T>,
     callbackfn: (value: T, index: number, array: List<T>) => U,
@@ -129,6 +135,17 @@ export class ListImpl<T> extends Array<T> implements List<T> {
     super(...items)
   }
 
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    of: ofAp<URI>,
+    f: (a: T) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], List<AP['_A'][0]>>> {
+    const initialState = of(([] as any) as List<AP['_A'][0]>)
+    const cons = of(concat)
+    return this.reduce(
+      (tail, head) => (cons.ap(f(head) as any) as ApKind<any, any>).ap(tail),
+      initialState
+    ) as any
+  }
   static of<T>(...items: T[]): List<T> {
     return new ListImpl(...items)
   }
@@ -171,7 +188,9 @@ export class ListImpl<T> extends Array<T> implements List<T> {
 }
 
 function ListConstructor<T extends Array<T[number]>>(list: T): List<T[number]>
-function ListConstructor<Values extends any[]>(...values: Values): List<Values[number]>
+function ListConstructor<Values extends any[]>(
+  ...values: Values
+): List<Values[number]>
 function ListConstructor(...args: any[]) {
   if (args.length === 1 && Array.isArray(args[0]) && args[0].length > 0) {
     return ListImpl.from(args[0])

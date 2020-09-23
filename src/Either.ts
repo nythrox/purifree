@@ -1,4 +1,10 @@
+import { List } from './List'
 import { Maybe, Just, Nothing } from './Maybe'
+import { NonEmptyList, ofAp } from './NonEmptyList'
+import { ApKind } from './pointfree/ap'
+import { pipe } from './pointfree/function-utils'
+import { ReplaceFirst, Type, URIS } from './pointfree/hkt_tst'
+import { traverse } from './pointfree/traverse'
 
 export type EitherPatterns<L, R, T> =
   | { Left: (l: L) => T; Right: (r: R) => T }
@@ -79,6 +85,16 @@ export interface Either<L, R> {
   extract(): L | R
   /** Returns `Right` if `this` is `Left` and vice versa */
   swap(): Either<R, L>
+
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    of: ofAp<URI>,
+    f: (a: R) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>>
+
+  sequence<Ap extends ApKind<any, any>>(
+    this: Either<L, Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
 
   'fantasy-land/bimap'<L2, R2>(
     f: (value: L) => L2,
@@ -186,6 +202,21 @@ class Right<R, L = never> implements Either<L, R> {
 
   isRight(): true {
     return true
+  }
+
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    _of: ofAp<URI>,
+    f: (a: R) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
+    const result = f(this.__value)
+    return result.map(right)
+  }
+
+  sequence<Ap extends ApKind<any, any>>(
+    this: Either<L, Ap>,
+    _of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
+    return (this as any).__value.map(right)
   }
 
   toJSON(): R {
@@ -373,6 +404,20 @@ class Left<L, R = never> implements Either<L, R> {
     return left(f(this.__value))
   }
 
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    of: ofAp<URI>,
+    _f: (a: R) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
+    return of(this) as any
+  }
+
+  sequence<Ap extends ApKind<any, any>>(
+    this: Either<L, Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
+    return of(this)
+  }
+
   map<R2>(_: (value: R) => R2): Either<L, R2> {
     return this as any
   }
@@ -529,3 +574,11 @@ export const isLeft: IsLeft = <L, R>(
 export const isRight: IsRight = <L, R>(
   either: Either<L, R>
 ): either is Either<never, R> => either.isRight()
+
+const v = right(0).traverse(Maybe.of, (n) => Just(n + 'n'))
+const sla = pipe(
+  right(0),
+  traverse(Maybe.of, (n) => Just(n + 'n'))
+)
+
+const hoi = right(Just(0)).sequence(Maybe.of)
