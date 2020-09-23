@@ -1,12 +1,13 @@
 import { Either, Right } from './Either'
+import { List } from './List'
 import { Maybe, Just, Nothing } from './Maybe'
 import { ApKind } from './pointfree/ap'
 import { of, HKT, ReplaceFirst, Type, URIS } from './pointfree/hkt_tst'
 import { SequenceableKind } from './pointfree/sequence'
 import { Tuple } from './Tuple'
-export type NonEmptyListCompliant<T> = T[] & { 0: T }
+export type NonEmptyArray<T> = T[] & { 0: T }
 
-export interface NonEmptyList<T> extends NonEmptyListCompliant<T> {
+export interface NonEmptyList<T> extends NonEmptyArray<T> {
   readonly _URI: NON_EMPTY_LIST_URI
   readonly _A: [T]
   sequence<Ap extends ApKind<any, any>>(
@@ -31,9 +32,6 @@ export interface NonEmptyList<T> extends NonEmptyListCompliant<T> {
 
   joinM<T2>(this: NonEmptyList<NonEmptyList<T2>>): NonEmptyList<T2>
 }
-const list = [Right(0)] as NonEmptyList<Either<never, number>>
-const v = list.sequence(Either.of)
-
 export type ofAp<URI extends URIS> = <T>(value: T) => ApKind<URI, [T, ...any]>
 
 export const concat = <T>(arr: Array<T>) => (arr2: Array<T>) => arr.concat(arr2)
@@ -41,6 +39,17 @@ class NonEmptyListImpl<T> extends Array<T> implements NonEmptyList<T> {
   0: T
   readonly _URI!: NON_EMPTY_LIST_URI
   readonly _A!: [T]
+
+  constructor(...items: T[]) {
+    super(...items)
+  }
+
+  static of<T>(...items: T[]) {
+    return new NonEmptyListImpl(...items) as NonEmptyList<T>
+  }
+  static from<T extends any[]>(array: T) {
+    return new NonEmptyListImpl(...array) as NonEmptyList<T[number]>
+  }
   sequence<Ap extends ApKind<any, any>>(
     this: NonEmptyList<Ap>,
     of: ofAp<Ap['_URI']>
@@ -88,27 +97,27 @@ declare module './pointfree/hkt_tst' {
 
 export interface NonEmptyListTypeRef {
   /** Typecasts an array with at least one element into a `NonEmptyList`. Works only if the compiler can confirm that the array has one or more elements */
-  <T extends NonEmptyListCompliant<T[number]>>(list: T): NonEmptyList<T[number]>
+  <T extends NonEmptyArray<T[number]>>(list: T): NonEmptyList<T[number]>
   <T, Rest extends T[]>(value1: T, ...values: Rest): NonEmptyList<T>
-  /** Returns a `Just NonEmptyList` if the parameter has one or more elements, otherwise it returns `Nothing` */
-  fromArray<T>(source: T[]): Maybe<NonEmptyList<T>>
-  /** Converts a `Tuple` to a `NonEmptyList` */
-  fromTuple<T, U>(source: Tuple<T, U>): NonEmptyList<T | U>
-  /** Typecasts any array into a `NonEmptyList`, but throws an exception if the array is empty. Use `fromArray` as a safe alternative */
-  unsafeCoerce<T>(source: T[]): NonEmptyList<T>
+  of<T>(val: T): NonEmptyList<T>
+  /** Returns a `Just NonEmptyArray` if the parameter has one or more elements, otherwise it returns `Nothing` */
+  fromArray<T>(source: T[]): Maybe<NonEmptyArray<T>>
+  /** Converts a `Tuple` to a `NonEmptyArray` */
+  fromTuple<T, U>(source: Tuple<T, U>): NonEmptyArray<T | U>
+  /** Typecasts any array into a `NonEmptyArray`, but throws an exception if the array is empty. Use `fromArray` as a safe alternative */
+  unsafeCoerce<T>(source: T[]): NonEmptyArray<T>
   /** Returns true and narrows the type if the passed array has one or more elements */
-  isNonEmpty<T>(list: T[]): list is NonEmptyList<T>
-  /** The same function as \`List#head\`, but it doesn't return a Maybe as a NonEmptyList will always have a head */
-  head<T>(list: NonEmptyList<T>): T
-  /** The same function as \`List#last\`, but it doesn't return a Maybe as a NonEmptyList will always have a last element */
-  last<T>(list: NonEmptyList<T>): T
-  /** The same function as \`List#tail\`, but it doesn't return a Maybe as a NonEmptyList will always have a tail (although it may be of length 0) */
-  tail<T>(list: NonEmptyList<T>): T[]
+  isNonEmpty<T>(list: T[]): list is NonEmptyArray<T>
+  /** The same function as \`List#head\`, but it doesn't return a Maybe as a NonEmptyArray will always have a head */
+  head<T>(list: NonEmptyArray<T>): T
+  /** The same function as \`List#last\`, but it doesn't return a Maybe as a NonEmptyArray will always have a last element */
+  last<T>(list: NonEmptyArray<T>): T
+  /** The same function as \`List#tail\`, but it doesn't return a Maybe as a NonEmptyArray will always have a tail (although it may be of length 0) */
+  tail<T>(list: NonEmptyArray<T>): T[]
 }
-function NonEmptyListConstructor<T extends NonEmptyListCompliant<T[number]>>(
+function NonEmptyListConstructor<T extends NonEmptyArray<any>>(
   list: T
 ): NonEmptyList<T[number]>
-// function NonEmptyListConstructor<T>(value: T): NonEmptyList<T>
 function NonEmptyListConstructor<T, Rest extends T[]>(
   value1: T,
   ...values: Rest
@@ -123,27 +132,32 @@ function NonEmptyListConstructor(...args: any[]) {
 export const NonEmptyList: NonEmptyListTypeRef = Object.assign(
   NonEmptyListConstructor,
   {
-    fromArray: <T>(source: T[]): Maybe<NonEmptyList<T>> =>
+    of: <T>(val: T) => new NonEmptyListImpl(val),
+    fromArray: <T>(source: T[]): Maybe<NonEmptyArray<T>> =>
       NonEmptyList.isNonEmpty(source) ? Just(source) : Nothing,
-    unsafeCoerce: <T>(source: T[]): NonEmptyList<T> => {
+    unsafeCoerce: <T>(source: T[]): NonEmptyArray<T> => {
       if (NonEmptyList.isNonEmpty(source)) {
         return source
       }
 
       throw new Error('NonEmptyList#unsafeCoerce was ran on an empty array')
     },
-    fromTuple: <T, U>(source: Tuple<T, U>): NonEmptyList<T | U> =>
+    fromTuple: <T, U>(source: Tuple<T, U>): NonEmptyArray<T | U> =>
       NonEmptyList(source.toArray()),
-    head: <T>(list: NonEmptyList<T>): T => list[0],
-    last: <T>(list: NonEmptyList<T>): T => list[list.length - 1],
-    isNonEmpty: <T>(list: T[]): list is NonEmptyList<T> => list.length > 0,
-    tail: <T>(list: NonEmptyList<T>): T[] => list.slice(1)
-  }
+    head: <T>(list: NonEmptyArray<T>): T => list[0],
+    last: <T>(list: NonEmptyArray<T>): T => list[list.length - 1],
+    isNonEmpty: <T>(list: T[]): list is NonEmptyArray<T> => list.length > 0,
+    tail: <T>(list: NonEmptyArray<T>): T[] => list.slice(1)
+  },
+  NonEmptyListImpl
 )
 
 const vv = NonEmptyList([1]).chain(() => NonEmptyList(['hi']))
 const slaaa = NonEmptyList(1, 2, 3, 4, 5)
+const hoi = NonEmptyList(List(1, 2, 3))
 const slaa2 = NonEmptyList('hola')
 const slaa3 = NonEmptyList(['hola'], ['holo'])
-const slaa4 = NonEmptyList([])
 const slaa5 = NonEmptyList(['hoo'])
+const slaa6 = NonEmptyList(NonEmptyList(1,2,3,4))
+const list = NonEmptyList(Right(0))
+const v = list.sequence(Either.of)

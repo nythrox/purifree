@@ -14,8 +14,7 @@ declare module './pointfree/hkt_tst' {
   }
 }
 
-
-export interface Either<L, R>  {
+export interface Either<L, R> {
   readonly _URI: EITHER_URI
   readonly _A: [R, L]
 
@@ -98,6 +97,7 @@ export interface Either<L, R>  {
 }
 
 interface EitherTypeRef {
+  <L, R>(value: R): Either<L, R>
   /** Takes a value and wraps it in a `Right` */
   of<L, R>(value: R): Either<L, R>
   /** Takes a list of `Either`s and returns a list of all `Left` values */
@@ -113,59 +113,64 @@ interface EitherTypeRef {
   'fantasy-land/of'<L, R>(value: R): Either<L, R>
 }
 
-export const Either: EitherTypeRef = {
-  of<L, R>(value: R): Either<L, R> {
+export const Either: EitherTypeRef = Object.assign(
+  <L, R>(value: R): Either<L, R> => {
     return right(value)
   },
-  lefts<L, R>(list: Either<L, R>[]): L[] {
-    let result = []
+  {
+    of<L, R>(value: R): Either<L, R> {
+      return right(value)
+    },
+    lefts<L, R>(list: Either<L, R>[]): L[] {
+      let result = []
 
-    for (const x of list) {
-      if (x.isLeft()) {
-        result.push(x.extract())
+      for (const x of list) {
+        if (x.isLeft()) {
+          result.push(x.extract())
+        }
       }
-    }
 
-    return result
-  },
-  rights<L, R>(list: Either<L, R>[]): R[] {
-    let result = []
+      return result
+    },
+    rights<L, R>(list: Either<L, R>[]): R[] {
+      let result = []
 
-    for (const x of list) {
-      if (x.isRight()) {
-        result.push(x.extract())
+      for (const x of list) {
+        if (x.isRight()) {
+          result.push(x.extract())
+        }
       }
-    }
 
-    return result
-  },
-  encase<L extends Error, R>(throwsF: () => R): Either<L, R> {
-    try {
-      return right(throwsF())
-    } catch (e) {
-      return left(e)
-    }
-  },
-  sequence<L, R>(eithers: Either<L, R>[]): Either<L, R[]> {
-    let res: R[] = []
-
-    for (const e of eithers) {
-      if (e.isLeft()) {
-        return e
+      return result
+    },
+    encase<L extends Error, R>(throwsF: () => R): Either<L, R> {
+      try {
+        return right(throwsF())
+      } catch (e) {
+        return left(e)
       }
-      res.push(e.extract() as R)
+    },
+    sequence<L, R>(eithers: Either<L, R>[]): Either<L, R[]> {
+      let res: R[] = []
+
+      for (const e of eithers) {
+        if (e.isLeft()) {
+          return e
+        }
+        res.push(e.extract() as R)
+      }
+
+      return right(res)
+    },
+    isEither<L, R>(x: unknown): x is Either<L, R> {
+      return x instanceof Left || x instanceof Right
+    },
+
+    'fantasy-land/of'<L, R>(value: R): Either<L, R> {
+      return Either.of(value)
     }
-
-    return right(res)
-  },
-  isEither<L, R>(x: unknown): x is Either<L, R> {
-    return x instanceof Left || x instanceof Right
-  },
-
-  'fantasy-land/of'<L, R>(value: R): Either<L, R> {
-    return Either.of(value)
   }
-}
+)
 
 class Right<R, L = never> implements Either<L, R> {
   private _ = 'R'

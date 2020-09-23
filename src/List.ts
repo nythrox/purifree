@@ -3,7 +3,8 @@ import { Maybe, Just, Nothing } from './Maybe'
 import { Order, orderToNumber } from './Function'
 import { ApKind } from './pointfree/ap'
 import { of, ReplaceFirst, Type } from './pointfree/hkt_tst'
-import { concat, ofAp } from './NonEmptyList'
+import { concat, NonEmptyList, ofAp } from './NonEmptyList'
+import { Either, Right } from '.'
 
 /** Returns Just the first element of an array or Nothing if there is none. If you don't want to work with a Maybe but still keep type safety, check out `List` */
 const head = <T>(list: T[]): Maybe<T> =>
@@ -92,23 +93,6 @@ function sort<T>(compare: (a: T, b: T) => Order, list?: T[]): any {
   }
 }
 
-function ListConstructor<T extends any[]>(...values: T): List<T[number]> {
-  return ListImpl.of(...values) as any // TODO: correct List, NonEmptyArray, .of(), etc
-}
-
-export const List = Object.assign(ListConstructor, {
-  init,
-  uncons,
-  at,
-  head,
-  last,
-  tail,
-  find,
-  findIndex,
-  sum,
-  sort
-})
-
 export const LIST_URI = 'List'
 export type LIST_URI = typeof LIST_URI
 
@@ -117,7 +101,6 @@ declare module './pointfree/hkt_tst' {
     [LIST_URI]: List<Types[0]>
   }
 }
-
 export interface List<T> extends Array<T> {
   readonly _URI: LIST_URI
   readonly _A: [T]
@@ -142,11 +125,21 @@ export interface List<T> extends Array<T> {
 export class ListImpl<T> extends Array<T> implements List<T> {
   _URI!: LIST_URI
   _A!: [T]
+  constructor(...items: T[]) {
+    super(...items)
+  }
+
+  static of<T>(...items: T[]): List<T> {
+    return new ListImpl(...items)
+  }
+  static from<T extends any[]>(array: T) {
+    return new ListImpl(...array) as List<T[number]>
+  }
   sequence<Ap extends ApKind<any, any>>(
     this: List<Ap>,
     of: ofAp<Ap['_URI']>
   ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], List<Ap['_A'][0]>>> {
-    const initialState = of(([] as any) as List<Ap['_A'][0]>)
+    const initialState = of(new ListImpl<Ap['_A'][0]>())
     const cons = of(concat)
     return this.reduce((tail, head) => cons.ap(head).ap(tail), initialState)
   }
@@ -176,3 +169,28 @@ export class ListImpl<T> extends Array<T> implements List<T> {
     )
   }
 }
+
+function ListConstructor<T extends Array<T[number]>>(list: T): List<T[number]>
+function ListConstructor<Values extends any[]>(...values: Values): List<Values[number]>
+function ListConstructor(...args: any[]) {
+  if (args.length === 1 && Array.isArray(args[0]) && args[0].length > 0) {
+    return ListImpl.from(args[0])
+  }
+  return ListImpl.of(...args)
+}
+
+export const List = Object.assign(ListConstructor, {
+  of: <T>(val: T) => ListImpl.of(val),
+  init,
+  uncons,
+  at,
+  head,
+  last,
+  tail,
+  find,
+  findIndex,
+  sum,
+  sort
+})
+
+const v = List(NonEmptyList(1, 2))

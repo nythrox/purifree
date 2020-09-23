@@ -1,4 +1,6 @@
 import { Either, Left, Right } from './Either'
+import { List } from './List'
+import { NonEmptyList } from './NonEmptyList'
 import { Type } from './pointfree/hkt_tst'
 
 export type MaybePatterns<T, U> =
@@ -497,3 +499,6 @@ const just = <T>(value: T): Maybe<T> => new Just(value)
 const nothing = new Nothing()
 
 export { just as Just, nothing as Nothing }
+
+
+const v = NonEmptyList(List(1))

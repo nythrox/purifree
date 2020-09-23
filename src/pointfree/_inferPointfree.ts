@@ -107,7 +107,7 @@ const makePointFree2 = <name extends string>(name: name) => {
     return any as typeof res extends infer A ? A : never
   }
 }
-const makePointFree = function <name extends string>(name: name) {
+const makePointFree = function <name extends string>(_name: name) {
   return any as PontFreeFunction<name>
 }
 
@@ -121,7 +121,7 @@ const test1 = pipe(
 const test2 = inferChain3(Right(0))((num) => Right(num))
 const hi = pipe(
   Right(0),
-  inferChain2((num) => Right(0))
+  inferChain2((num) => Right(num.toString()))
 )
 
 const toString = makePointFree('toString')
