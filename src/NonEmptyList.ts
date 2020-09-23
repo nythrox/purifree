@@ -1,4 +1,5 @@
 import { Drop } from 'List/Drop'
+import { ListImpl } from '.'
 import { Either, Right } from './Either'
 import { List } from './List'
 import { Maybe, Just, Nothing } from './Maybe'
@@ -57,107 +58,6 @@ export interface NonEmptyList<T> extends NonEmptyArray<T> {
 }
 export type ofAp<URI extends URIS> = <T>(value: T) => ApKind<URI, [T, ...any]>
 export const concat = <T>(arr: Array<T>) => (arr2: Array<T>) => arr.concat(arr2)
-export class NonEmptyListImpl<T> extends Array<T> implements NonEmptyList<T> {
-  0: T
-  readonly _URI!: NON_EMPTY_LIST_URI
-  readonly _A!: [T]
-
-  ap<R2>(other: NonEmptyList<(value: T) => R2>): NonEmptyList<R2> {
-    return other.chain((f) => this.map(f))
-  }
-
-  'fantasy-land/ap'<R2>(
-    other: NonEmptyList<(value: T) => R2>
-  ): NonEmptyList<R2> {
-    return this.ap(other)
-  }
-
-  'fantasy-land/traverse'<
-    URI extends URIS,
-    AP extends ApKind<any, any> = ApKind<URI, any>
-  >(
-    of: ofAp<URI>,
-    f: (a: T) => AP
-  ): Type<URI, ReplaceFirst<AP['_A'], NonEmptyList<AP['_A'][0]>>> {
-    return this.traverse(of, f)
-  }
-
-  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
-    of: ofAp<URI>,
-    f: (a: T) => AP
-  ): Type<URI, ReplaceFirst<AP['_A'], NonEmptyList<AP['_A'][0]>>> {
-    const initialState = of(([] as any) as NonEmptyList<AP['_A'][0]>)
-    const cons = of(concat)
-    return this.reduce(
-      (tail, head) => (cons.ap(f(head) as any) as ApKind<any, any>).ap(tail),
-      initialState
-    ) as any
-  }
-
-
-  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
-    this: NonEmptyList<Ap>,
-    of: ofAp<Ap['_URI']>
-  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], NonEmptyList<Ap['_A'][0]>>> {
-    return this.sequence(of)
-  }
-  sequence<Ap extends ApKind<any, any>>(
-    this: NonEmptyList<Ap>,
-    of: ofAp<Ap['_URI']>
-  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], NonEmptyList<Ap['_A'][0]>>> {
-    // const initialState = of(([] as any) as NonEmptyList<Ap['_A'][0]>)
-    // const cons = of(concat)
-    // return this.reduce((tail, head) => cons.ap(head).ap(tail), initialState)
-    return this.traverse(of, (e) => e)
-  }
-
-  'fantasy-land/map'<U>(
-    this: NonEmptyList<T>,
-    callbackfn: (value: T, index: number, array: NonEmptyList<T>) => U,
-    thisArg?: any
-  ): NonEmptyList<U> {
-    return this.map(callbackfn, thisArg)
-  }
-  map<U>(
-    this: NonEmptyList<T>,
-    callbackfn: (value: T, index: number, array: NonEmptyList<T>) => U,
-    thisArg?: any
-  ): NonEmptyList<U> {
-    return this.map(callbackfn, thisArg)
-  }
-
-  'fantasy-land/chain'<U>(
-    this: NonEmptyList<T>,
-    callbackfn: (
-      value: T,
-      index: number,
-      array: NonEmptyList<T>
-    ) => NonEmptyList<U>,
-    thisArg?: any
-  ): NonEmptyList<U> {
-    return this.chain(callbackfn, thisArg)
-  }
-  chain<U>(
-    this: NonEmptyList<T>,
-    callbackfn: (
-      value: T,
-      index: number,
-      array: NonEmptyList<T>
-    ) => NonEmptyList<U>,
-    thisArg?: any
-  ): NonEmptyList<U> {
-    return this.map(callbackfn, thisArg).joinM()
-  }
-  joinM<T2>(this: NonEmptyList<NonEmptyList<T2>>): NonEmptyList<T2> {
-    return this.reduce(
-      (acc, val) => acc.concat(val) as NonEmptyList<T2>,
-      ([] as any) as NonEmptyList<T2>
-    )
-  }
-  reverse(this: NonEmptyList<T>): NonEmptyList<T> {
-    return this.reverse()
-  }
-}
 export const NON_EMPTY_LIST_URI = 'NonEmptyList'
 export type NON_EMPTY_LIST_URI = typeof NON_EMPTY_LIST_URI
 
@@ -197,15 +97,15 @@ function NonEmptyListConstructor<T, Rest extends T[]>(
 function NonEmptyListConstructor(...args: any[]) {
   if (args.length === 1 && Array.isArray(args[0]) && args[0].length > 0) {
     console.log('returning NonEmptyListImpl.from')
-    return NonEmptyListImpl.from(args[0])
+    return ListImpl.from(args[0])
   }
-  return (NonEmptyListImpl as any).of(...args)
+  return (ListImpl as any).of(...args)
 }
 
 export const NonEmptyList: NonEmptyListTypeRef = Object.assign(
   NonEmptyListConstructor,
   {
-    of: <T>(val: T) => new NonEmptyListImpl(val),
+    of: <T>(val: T) => (new ListImpl(val) as unknown) as NonEmptyList<T>,
     fromArray: <T>(source: T[]): Maybe<NonEmptyList<T>> =>
       NonEmptyList.isNonEmpty(source) ? Just(NonEmptyList(source)) : Nothing,
     unsafeCoerce: <T>(source: T[]): NonEmptyArray<T> => {
