@@ -47,6 +47,10 @@ export interface NonEmptyList<T> extends NonEmptyArray<T> {
   reverse(this: NonEmptyList<T>): NonEmptyList<T>
 
   joinM<T2>(this: NonEmptyList<NonEmptyList<T2>>): NonEmptyList<T2>
+  'fantasy-land/traverse': this['traverse']
+  'fantasy-land/sequence': this['sequence']
+  'fantasy-land/map': this['map']
+  'fantasy-land/chain': this['chain']
 }
 export type ofAp<URI extends URIS> = <T>(value: T) => ApKind<URI, [T, ...any]>
 export const concat = <T>(arr: Array<T>) => (arr2: Array<T>) => arr.concat(arr2)
@@ -59,6 +63,11 @@ class NonEmptyListImpl<T> extends Array<T> implements NonEmptyList<T> {
     super(...items)
   }
 
+  'fantasy-land/traverse'= this['traverse']
+  'fantasy-land/sequence'= this['sequence']
+  'fantasy-land/map'= this['map']
+  'fantasy-land/chain'= this['chain']
+  
   traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
     of: ofAp<URI>,
     f: (a: T) => AP

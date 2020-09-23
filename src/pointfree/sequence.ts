@@ -1,14 +1,23 @@
-import { Either, Just, Maybe, NonEmptyList, Right } from '..'
+import {
+  Either,
+  Just,
+  List,
+  Maybe,
+  NonEmptyArray,
+  NonEmptyList,
+  ofAp,
+  Right
+} from '..'
 import { ApKind } from './ap'
 import { pipe } from './function-utils'
-import {  HKT, ReplaceFirst, Type, URIS, of } from './hkt_tst'
+import { HKT, ReplaceFirst, Type, URIS, of } from './hkt_tst'
 
 export interface SequenceableKind<F extends URIS, A extends any[]>
   extends HKT<F, A> {
   // this is [ Either<L,R> ]
   readonly sequence: <Ap extends ApKind<any, any>>(
     this: Type<F, ReplaceFirst<A, Ap>>,
-    of: of<Ap['_URI']>
+    of: ofAp<Ap['_URI']>
   ) => Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Type<F, Ap['_A'][0]>>>
 }
 export const sequence = <
@@ -19,7 +28,7 @@ export const sequence = <
     ? ApKind<ApUri, ApArgs>
     : never
 >(
-  of: Ap extends ApKind<any, any> ? of<Ap['_URI']> : never
+  of: Ap extends ApKind<any, any> ? ofAp<Ap['_URI']> : never
 ) => (
   seq: Sequenceable
 ): Ap extends ApKind<any, any>
@@ -31,13 +40,6 @@ export const sequence = <
   return seq.sequence(of)
 }
 
+const seqtest = pipe(List(Right(0)), sequence(Either.of))
 
-const seqtest = pipe(
-  [Right(0)] as NonEmptyList<Either<never, number>>,
-  sequence(Either.of)
-)
-
-const seqtest2 = pipe(
-  [Just(0)] as NonEmptyList<Maybe<number>>,
-  sequence(Maybe.of)
-)
+const seqtest2 = pipe(NonEmptyList(Just(0)), sequence(Maybe.of))

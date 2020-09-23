@@ -5,6 +5,7 @@ import { ApKind } from './pointfree/ap'
 import { of, ReplaceFirst, Type, URIS } from './pointfree/hkt_tst'
 import { concat, NonEmptyList, ofAp } from './NonEmptyList'
 import { Either, Right } from '.'
+import { EitherAsync } from './EitherAsync'
 
 /** Returns Just the first element of an array or Nothing if there is none. If you don't want to work with a Maybe but still keep type safety, check out `List` */
 const head = <T>(list: T[]): Maybe<T> =>
@@ -127,6 +128,11 @@ export interface List<T> extends Array<T> {
   reverse(this: List<T>): List<T>
 
   joinM<T2>(this: List<List<T2>>): List<T2>
+  
+  'fantasy-land/traverse': this['traverse']
+  'fantasy-land/sequence': this['sequence']
+  'fantasy-land/map': this['map']
+  'fantasy-land/chain': this['chain']
 }
 export class ListImpl<T> extends Array<T> implements List<T> {
   _URI!: LIST_URI
@@ -135,6 +141,10 @@ export class ListImpl<T> extends Array<T> implements List<T> {
     super(...items)
   }
 
+  'fantasy-land/traverse'= this['traverse']
+  'fantasy-land/sequence'= this['sequence']
+  'fantasy-land/map'= this['map']
+  'fantasy-land/chain'= this['chain']
   traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
     of: ofAp<URI>,
     f: (a: T) => AP
@@ -213,3 +223,4 @@ export const List = Object.assign(ListConstructor, {
 })
 
 const v = List(NonEmptyList(1, 2))
+const owo = List(EitherAsync.liftEither(Right(10))).sequence(EitherAsync.of)

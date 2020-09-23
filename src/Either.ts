@@ -95,7 +95,8 @@ export interface Either<L, R> {
     this: Either<L, Ap>,
     of: ofAp<Ap['_URI']>
   ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
-
+  'fantasy-land/traverse': this['traverse']
+  'fantasy-land/sequence': this['sequence']
   'fantasy-land/bimap'<L2, R2>(
     f: (value: L) => L2,
     g: (value: R) => R2
@@ -204,6 +205,8 @@ class Right<R, L = never> implements Either<L, R> {
     return true
   }
 
+  'fantasy-land/traverse' = this['traverse']
+
   traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
     _of: ofAp<URI>,
     f: (a: R) => AP
@@ -212,6 +215,7 @@ class Right<R, L = never> implements Either<L, R> {
     return result.map(right)
   }
 
+  'fantasy-land/sequence' = this['sequence']
   sequence<Ap extends ApKind<any, any>>(
     this: Either<L, Ap>,
     _of: ofAp<Ap['_URI']>
@@ -231,7 +235,7 @@ class Right<R, L = never> implements Either<L, R> {
     return this.inspect()
   }
 
-  bimap<L2, R2>(f: (value: L) => L2, g: (value: R) => R2): Either<L2, R2> {
+  bimap<L2, R2>(_f: (value: L) => L2, g: (value: R) => R2): Either<L2, R2> {
     // bimap<L2, R2>(_: (value: L) => L2, g: (value: R) => R2): Either<L2, R2> {
     return right(g(this.__value))
   }
@@ -399,11 +403,12 @@ class Left<L, R = never> implements Either<L, R> {
     return this.inspect()
   }
 
-  bimap<L2, R2>(f: (value: L) => L2, g: (value: R) => R2): Either<L2, R2> {
+  bimap<L2, R2>(f: (value: L) => L2, _g: (value: R) => R2): Either<L2, R2> {
     // bimap<L2, R2>(f: (value: L) => L2, _: (value: R) => R2): Either<L2, R2> {
     return left(f(this.__value))
   }
 
+  'fantasy-land/traverse' = this['traverse']
   traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
     of: ofAp<URI>,
     _f: (a: R) => AP
@@ -411,6 +416,7 @@ class Left<L, R = never> implements Either<L, R> {
     return of(this) as any
   }
 
+  'fantasy-land/sequence' = this['sequence']
   sequence<Ap extends ApKind<any, any>>(
     this: Either<L, Ap>,
     of: ofAp<Ap['_URI']>

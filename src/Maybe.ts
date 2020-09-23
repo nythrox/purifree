@@ -1,7 +1,11 @@
 import { Either, Left, Right } from './Either'
 import { List } from './List'
-import { NonEmptyList } from './NonEmptyList'
-import { Type } from './pointfree/hkt_tst'
+import { NonEmptyList, ofAp } from './NonEmptyList'
+import { ApKind } from './pointfree/ap'
+import { pipe } from './pointfree/function-utils'
+import { ReplaceFirst, Type, URIS } from './pointfree/hkt_tst'
+import { sequence } from './pointfree/sequence'
+import { traverse } from './pointfree/traverse'
 
 export type MaybePatterns<T, U> =
   | { Just: (value: T) => U; Nothing: () => U }
@@ -77,6 +81,18 @@ export interface Maybe<T> {
   /** Takes a predicate function and returns `this` if the predicate returns true or Nothing if it returns false */
   filter(pred: (value: T) => boolean): Maybe<T>
 
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    of: ofAp<URI>,
+    f: (a: T) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>>
+
+  sequence<Ap extends ApKind<any, any>>(
+    this: Maybe<Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>>
+
+  'fantasy-land/traverse': this['traverse']
+  'fantasy-land/sequence': this['sequence']
   'fantasy-land/equals'(other: Maybe<T>): boolean
   'fantasy-land/map'<U>(f: (value: T) => U): Maybe<U>
   'fantasy-land/ap'<U>(maybeF: Maybe<(value: T) => U>): Maybe<U>
@@ -188,7 +204,7 @@ class Just<T> implements Maybe<T> {
   constructor(private __value: T) {}
 
   [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [never]>, never, any>
-  
+
   readonly _URI!: MAYBE_URI
   readonly _A!: [T]
 
@@ -218,6 +234,21 @@ class Just<T> implements Maybe<T> {
 
   map<U>(f: (value: T) => U): Maybe<U> {
     return just(f(this.__value))
+  }
+
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    _of: ofAp<URI>,
+    f: (a: T) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>> {
+    const result = f(this.__value)
+    return result.map(just)
+  }
+
+  sequence<Ap extends ApKind<any, any>>(
+    this: Maybe<Ap>,
+    _of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>> {
+    return (this as any).__value.map(just)
   }
 
   ap<U>(maybeF: Maybe<(value: T) => U>): Maybe<U> {
@@ -298,6 +329,8 @@ class Just<T> implements Maybe<T> {
     return pred(this.__value) ? just(this.__value) : nothing
   }
 
+  'fantasy-land/traverse' = this['traverse']
+  'fantasy-land/sequence' = this['sequence']
   'fantasy-land/equals'(other: Maybe<T>): boolean {
     return this.equals(other)
   }
@@ -337,10 +370,8 @@ class Just<T> implements Maybe<T> {
 Just.prototype.constructor = Maybe as any
 
 class Nothing implements Maybe<never> {
-
-  
   [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [never]>, never, any>
-  
+
   private __value!: never
 
   readonly _URI!: MAYBE_URI
@@ -372,6 +403,20 @@ class Nothing implements Maybe<never> {
 
   map<U>(_: (value: never) => U): Maybe<U> {
     return nothing
+  }
+
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    of: ofAp<URI>,
+    _f: (a: never) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>> {
+    return of(this) as any
+  }
+
+  sequence<Ap extends ApKind<any, any>>(
+    this: Maybe<Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>> {
+    return of(this) as any
   }
 
   ap<U>(_: Maybe<(value: never) => U>): Maybe<U> {
@@ -454,6 +499,8 @@ class Nothing implements Maybe<never> {
     return nothing
   }
 
+  'fantasy-land/traverse' = this['traverse']
+  'fantasy-land/sequence' = this['sequence']
   'fantasy-land/equals'(other: Maybe<never>): boolean {
     return this.equals(other)
   }
@@ -500,5 +547,7 @@ const nothing = new Nothing()
 
 export { just as Just, nothing as Nothing }
 
-
-const v = NonEmptyList(List(1))
+const v = just(5)
+const sla = v.traverse(Either.of, (num) => Right(num.toString()))
+const res = sla.sequence(Maybe.of)
+const oi = pipe(res, sequence(Either.of))
