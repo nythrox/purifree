@@ -250,6 +250,21 @@ class Just<T> implements Maybe<T> {
     return result.map(just)
   }
 
+  'fantasy-land/traverse'<
+    URI extends URIS,
+    AP extends ApKind<any, any> = ApKind<URI, any>
+  >(
+    of: ofAp<URI>,
+    f: (a: T) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>> {
+    return this.traverse(of, f)
+  }
+  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
+    this: Maybe<Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>> {
+    return this.sequence(of)
+  }
   sequence<Ap extends ApKind<any, any>>(
     this: Maybe<Ap>,
     _of: ofAp<Ap['_URI']>
@@ -335,8 +350,6 @@ class Just<T> implements Maybe<T> {
     return pred(this.__value) ? just(this.__value) : nothing
   }
 
-  'fantasy-land/traverse' = this['traverse']
-  'fantasy-land/sequence' = this['sequence']
   'fantasy-land/equals'(other: Maybe<T>): boolean {
     return this.equals(other)
   }
@@ -416,6 +429,21 @@ class Nothing implements Maybe<never> {
     _f: (a: never) => AP
   ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>> {
     return of(this) as any
+  }
+  'fantasy-land/traverse'<
+    URI extends URIS,
+    AP extends ApKind<any, any> = ApKind<URI, any>
+  >(
+    of: ofAp<URI>,
+    f: (a: never) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>> {
+    return this.traverse(of, f)
+  }
+  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
+    this: Maybe<Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>> {
+    return this.sequence(of)
   }
 
   sequence<Ap extends ApKind<any, any>>(
@@ -505,8 +533,6 @@ class Nothing implements Maybe<never> {
     return nothing
   }
 
-  'fantasy-land/traverse' = this['traverse']
-  'fantasy-land/sequence' = this['sequence']
   'fantasy-land/equals'(other: Maybe<never>): boolean {
     return this.equals(other)
   }

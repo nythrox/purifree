@@ -173,7 +173,11 @@ class EitherAsyncImpl<L, R> implements EitherAsync<L, R> {
       return helpers.liftEither(either.ap(o))
     })
   }
-  'fantasy-land/ap' = this.ap
+  'fantasy-land/ap'<R2>(
+    other: EitherAsync<L, (value: R) => R2>
+  ): EitherAsync<L, R2> {
+    return this.ap(other)
+  }
   alt(other: EitherAsync<L, R>): EitherAsync<L, R> {
     return EitherAsync(async (helpers) => {
       const either = await this.run()
@@ -181,7 +185,9 @@ class EitherAsyncImpl<L, R> implements EitherAsync<L, R> {
       return helpers.liftEither(either.alt(o))
     })
   }
-  'fantasy-land/alt' = this.alt
+  'fantasy-land/alt'(other: EitherAsync<L, R>): EitherAsync<L, R> {
+    return this.alt(other)
+  }
 
   extend<R2>(f: (value: EitherAsync<L, R>) => R2): EitherAsync<L, R2> {
     return EitherAsync(async (helpers) => {
@@ -193,7 +199,11 @@ class EitherAsyncImpl<L, R> implements EitherAsync<L, R> {
       return helpers.liftEither((either as any) as Either<L, R2>)
     })
   }
-  'fantasy-land/extend' = this.extend
+  'fantasy-land/extend'<R2>(
+    f: (value: EitherAsync<L, R>) => R2
+  ): EitherAsync<L, R2> {
+    return this.extend(f)
+  }
 
   async run(): Promise<Either<L, R>> {
     try {

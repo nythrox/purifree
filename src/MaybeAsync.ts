@@ -120,6 +120,9 @@ class MaybeAsyncImpl<T> implements MaybeAsync<T> {
       return helpers.liftMaybe(Nothing as Maybe<U>)
     })
   }
+  'fantasy-land/ap'<U>(maybeF: MaybeAsync<(value: T) => U>): MaybeAsync<U> {
+    return this.ap(maybeF)
+  }
   ap<U>(maybeF: MaybeAsync<(value: T) => U>): MaybeAsync<U> {
     return MaybeAsync(async (helpers) => {
       const value = await this.run()
@@ -127,7 +130,9 @@ class MaybeAsyncImpl<T> implements MaybeAsync<T> {
       return helpers.liftMaybe(value.ap(maybe))
     })
   }
-  'fantasy-land/ap' = this.ap
+  'fantasy-land/alt'(other: MaybeAsync<T>): MaybeAsync<T> {
+    return this.alt(other)
+  }
   alt(other: MaybeAsync<T>): MaybeAsync<T> {
     return MaybeAsync(async (helpers) => {
       const value = await this.run()
@@ -135,7 +140,6 @@ class MaybeAsyncImpl<T> implements MaybeAsync<T> {
       return helpers.liftMaybe(value.alt(maybe))
     })
   }
-  'fantasy-land/alt' = this.alt
   extend<U>(f: (value: MaybeAsync<T>) => U): MaybeAsync<U> {
     return MaybeAsync(async (helpers) => {
       const maybe = await this.run()
@@ -146,14 +150,19 @@ class MaybeAsyncImpl<T> implements MaybeAsync<T> {
       return helpers.liftMaybe((Nothing as any) as Maybe<U>)
     })
   }
-  'fantasy-land/extend' = this.extend
+  'fantasy-land/extend'<U>(f: (value: MaybeAsync<T>) => U): MaybeAsync<U> {
+    return this.extend(f)
+  }
   filter(pred: (value: T) => boolean): MaybeAsync<T> {
     return MaybeAsync(async (helpers) => {
       const value = await this.run()
       return helpers.liftMaybe(value.filter(pred))
     })
   }
-  'fantasy-land/filter' = this.filter
+
+  'fantasy-land/filter'(pred: (value: T) => boolean): MaybeAsync<T> {
+    return this.filter(pred)
+  }
 
   readonly _URI!: MAYBE_ASYNC_URI
   readonly _A!: [T];

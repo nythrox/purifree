@@ -205,7 +205,15 @@ class Right<R, L = never> implements Either<L, R> {
     return true
   }
 
-  'fantasy-land/traverse' = this['traverse']
+  'fantasy-land/traverse'<
+    URI extends URIS,
+    AP extends ApKind<any, any> = ApKind<URI, any>
+  >(
+    of: ofAp<URI>,
+    f: (a: R) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
+    return this.traverse(of, f)
+  }
 
   traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
     _of: ofAp<URI>,
@@ -215,7 +223,13 @@ class Right<R, L = never> implements Either<L, R> {
     return result.map(right)
   }
 
-  'fantasy-land/sequence' = this['sequence']
+  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
+    this: Either<L, Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
+    return this.sequence(of)
+  }
+
   sequence<Ap extends ApKind<any, any>>(
     this: Either<L, Ap>,
     _of: ofAp<Ap['_URI']>
@@ -408,7 +422,15 @@ class Left<L, R = never> implements Either<L, R> {
     return left(f(this.__value))
   }
 
-  'fantasy-land/traverse' = this['traverse']
+  'fantasy-land/traverse'<
+    URI extends URIS,
+    AP extends ApKind<any, any> = ApKind<URI, any>
+  >(
+    of: ofAp<URI>,
+    f: (a: R) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
+    return this.traverse(of, f)
+  }
   traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
     of: ofAp<URI>,
     _f: (a: R) => AP
@@ -416,7 +438,12 @@ class Left<L, R = never> implements Either<L, R> {
     return of(this) as any
   }
 
-  'fantasy-land/sequence' = this['sequence']
+  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
+    this: Either<L, Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
+    return this.sequence(of)
+  }
   sequence<Ap extends ApKind<any, any>>(
     this: Either<L, Ap>,
     of: ofAp<Ap['_URI']>
