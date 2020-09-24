@@ -27,9 +27,7 @@ export const sequenceT = <Of extends ofAp<any>>(of: Of) => <
         'ERROR: All secondary generics must be of the same type. Different generics found: ',
         Rest[number]
       ][]
-    : T & {
-        readonly 0: NoInfer<T[0]>
-      }
+    : T
 ): IsUnion<Rest> extends true
   ? [
       'ERROR: All secondary generics must be of the same type. Different generics found: ',
@@ -49,9 +47,7 @@ export const sequenceTFlex = <Of extends ofAp<any>>(of: Of) => <
   Ap extends ApKind<any, any> = ReturnType<Of>,
   T extends Array<ApKind<Ap['_URI'], any>> = any
 >(
-  ...t: T & {
-    readonly 0: NoInfer<Ap>
-  }
+  ...t: T
 ): Type<
   Ap['_URI'],
   ReplaceFirst<
