@@ -2,8 +2,51 @@ import { List } from './List'
 import { Just, Nothing } from './Maybe'
 import { Tuple } from './Tuple'
 import { compare } from './Function'
-
+import { sequenceS } from './pointfree/sequenceS'
+import { sequenceT } from './pointfree/sequenceT'
+import { Either, Right } from './Either'
+import { Left, ListImpl } from '.'
+import { pipe } from './pointfree/function-utils'
+import { traverse } from './pointfree/traverse'
+import { sequence } from './pointfree/sequence'
+import { EitherAsync } from './EitherAsync'
 describe('List', () => {
+  test('sequence', () => {
+    expect(pipe(List(Right(5)), sequence(Either.of))).toEqual(Right(List(5)))
+  })
+  test('sequenceT', () => {
+    expect(sequenceT(Either.of)(Right(5))).toEqual(Right(List(5)))
+  })
+  test('sequenceS', () => {
+    expect(
+      sequenceS(Either.of)({
+        name: Right<string, string>('test'),
+        something: Right<string, string>('test'),
+        age: Right<number, string>(100)
+      })
+    ).toEqual(
+      Right({
+        name: 'test',
+        something: 'test',
+        age: 100
+      })
+    )
+  })
+  test('traverse', () => {
+    expect(
+      pipe(
+        List(1, 2),
+        traverse(List.of, (num) => List(num, num * 2))
+      )
+    ).toEqual(List(List(1, 2), List(1, 4), List(2, 2), List(2, 4)))
+    expect(
+      pipe(
+        List(1, 2, 3),
+        traverse(Either.of, (num) => Right(num * 5))
+      )
+    ).toEqual(Right(List(5, 10, 15)))
+  })
+
   test('at', () => {
     expect(List.at(0, [1, 2])).toEqual(Just(1))
     expect(List.at(0)([1, 2])).toEqual(Just(1))

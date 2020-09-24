@@ -1,3 +1,5 @@
+import { Right } from '..'
+import { pipe } from './function-utils'
 import { HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
 
 export interface FunctorKind<F extends URIS, A extends any[]>
@@ -10,3 +12,7 @@ export const map = <Functor extends FunctorKind<any, any>, B = any>(
 ) => (fa: Functor): Type<Functor['_URI'], ReplaceFirst<Functor['_A'], B>> => {
   return fa.map(f)
 }
+
+
+
+

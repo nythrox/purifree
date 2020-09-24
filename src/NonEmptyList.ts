@@ -96,7 +96,7 @@ function NonEmptyListConstructor(...args: any[]) {
   if (args.length === 1 && Array.isArray(args[0]) && args[0].length > 0) {
     return ListImpl.from(args[0])
   }
-  return (ListImpl as any).of(...args)
+  return ListImpl.of(...args)
 }
 
 export const NonEmptyList: NonEmptyListTypeRef = Object.assign(

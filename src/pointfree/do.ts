@@ -24,7 +24,7 @@ export function DoFlex<
   URI extends URIS = Generatable['_URI'],
   R = any
 >(
-  fun: IsUnion<URI> extends false
+  _fun: IsUnion<URI> extends false
     ? () => Generator<Generatable, R, any>
     : [
         'ERROR: Cannot have monads of different types in do* notation. Different monads found: ',
@@ -110,3 +110,5 @@ const restura = Do(function* () {
   // }
   return user.name
 })
+
+

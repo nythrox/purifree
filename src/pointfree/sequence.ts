@@ -41,16 +41,16 @@ export const sequence = <
   return seq.sequence(of)
 }
 
-const seqtest = pipe(List(Right(0)), sequence(Either))
+// const seqtest = pipe(List(Right(0)), sequence(Either))
 
-const seqtest2 = pipe(NonEmptyList(Just(0)), sequence(Maybe))
+// const seqtest2 = pipe(NonEmptyList(Just(0)), sequence(Maybe))
 
-const seqtestNEL = pipe(
-  Right(1),
-  traverse(NonEmptyList, (num) => NonEmptyList(1))
-)
+// const seqtestNEL = pipe(
+//   Right(1),
+//   traverse(NonEmptyList, (num) => NonEmptyList(1))
+// )
 
-const seqtestL = pipe(
-  Right(1),
-  traverse(List, (num) => List(1))
-)
+// const seqtestL = pipe(
+//   Right(1),
+//   traverse(List, (num) => List(1))
+// )

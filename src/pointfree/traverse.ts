@@ -1,3 +1,4 @@
+import { NoInfer } from 'Function/_api'
 import { Either, ofAp, Right } from '..'
 import { NonEmptyList } from '../NonEmptyList'
 import { ApKind } from './ap'
@@ -22,9 +23,9 @@ export const traverse = <
   //   AP extends ApKind<URI, A>,
 >(
   of: ofAp<URI>,
-  f: (a: Traversable['_A'][0]) => ApKind<URI, A>
+  f: (a: Traversable['_A'][0]) => ApKind<NoInfer<URI>, A>
 ) => (
-  trav: Traversable
+  traversable: Traversable
 ): Type<
   URI,
   ReplaceFirst<
@@ -32,7 +33,7 @@ export const traverse = <
     Type<Traversable['_URI'], ReplaceFirst<Traversable['_A'], A[0]>>
   >
 > => {
-  return trav.traverse(of, f)
+  return traversable.traverse(of, f)
 }
 
 // const test = pipe(

@@ -143,8 +143,13 @@ export class ListImpl<T> extends Array<T> implements List<T> {
   readonly _URI!: LIST_URI
   readonly _A!: [T]
 
+  constructor(...items: T[]) {
+    super(...items)
+    Object.setPrototypeOf(this, ListImpl.prototype)
+  }
+
   ap<R2>(other: List<(value: T) => R2>): List<R2> {
-    return other.chain((f) => this.map(f))
+    return other.chain((f) => this.map(f) as any)
   }
 
   'fantasy-land/ap'<R2>(other: List<(value: T) => R2>): List<R2> {
@@ -165,12 +170,11 @@ export class ListImpl<T> extends Array<T> implements List<T> {
     of: ofAp<URI>,
     f: (a: T) => AP
   ): Type<URI, ReplaceFirst<AP['_A'], List<AP['_A'][0]>>> {
-    const initialState = of(([] as any) as List<AP['_A'][0]>)
-    const cons = of(this.concat)
-    return this.reduce(
-      (tail, head) => (cons.ap(f(head) as any) as ApKind<any, any>).ap(tail),
-      initialState
-    ) as any
+    const initialState = of(List() as List<AP['_A'][0]>)
+    return this.reduceRight((tail, head) => {
+      const v0 = f(head).map((val) => (tail: any[]) => [val, ...tail])
+      return tail.ap(v0) as any
+    }, initialState) as any
   }
 
   'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
@@ -183,9 +187,6 @@ export class ListImpl<T> extends Array<T> implements List<T> {
     this: List<Ap>,
     of: ofAp<Ap['_URI']>
   ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], List<Ap['_A'][0]>>> {
-    // const initialState = of(([] as any) as List<Ap['_A'][0]>)
-    // const cons = of(concat)
-    // return this.reduce((tail, head) => cons.ap(head).ap(tail), initialState)
     return this.traverse(of, (e) => e)
   }
 
@@ -196,13 +197,12 @@ export class ListImpl<T> extends Array<T> implements List<T> {
   ): List<U> {
     return this.map(callbackfn, thisArg)
   }
-  map<U>(
+
+  map!: <U>(
     this: List<T>,
     callbackfn: (value: T, index: number, array: List<T>) => U,
     thisArg?: any
-  ): List<U> {
-    return this.map(callbackfn, thisArg)
-  }
+  ) => List<U>
 
   'fantasy-land/chain'<U>(
     this: List<T>,
@@ -221,12 +221,10 @@ export class ListImpl<T> extends Array<T> implements List<T> {
   joinM<T2>(this: List<List<T2>>): List<T2> {
     return this.reduce(
       (acc, val) => acc.concat(val) as List<T2>,
-      ([] as any) as List<T2>
+      (List() as any) as List<T2>
     )
   }
-  reverse(this: List<T>): List<T> {
-    return this.reverse()
-  }
+  reverse!: (this: List<T>) => List<T>
 }
 
 function ListConstructor<T>(list: NonEmptyArray<T>): List<T> & { 0: T }
@@ -255,4 +253,3 @@ export const List = Object.assign(ListConstructor, {
   sum,
   sort
 })
-// const owo = List(EitherAsync.liftEither(Right(10))).sequence(EitherAsync.of)

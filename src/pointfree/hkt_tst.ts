@@ -26,6 +26,7 @@ export interface HKT<F extends URIS, A extends any[]> {
   _URI: F
   _A: A
 }
+
 export type TypeFromHKT<
   other extends HKT<any, any>,
   replaceA extends any[]
@@ -84,15 +85,14 @@ export type ReplaceFirstAndSecond<Arr extends any[], A, B> = Arr extends [
     [A, B]
 
 export type OrNever<K> = unknown extends K ? never : K
-
+export type ProtectFromNever<T> = OrNever<T> extends never ? never : T
 export type ReplaceFirstAndReplaceSecondIfSecondIsNever<
   Arr extends any[],
   A,
   B
 > = Arr extends [infer _First, infer Second, ...infer Rest]
   ? [A, OrNever<Second> extends never ? B : Second, ...Rest]
-  : // : Arr
-    [A, B]
+  : [A, B]
 
 export type SwapFirstTwo<Arr extends any[]> = Arr extends [
   infer First,
