@@ -4,7 +4,6 @@ import { ApKind } from './ap'
 import { IsUnion } from './do'
 import { ReplaceFirst, Type } from './hkt_tst'
 
-export type EnforceNonEmptyRecord<R> = keyof R extends never ? never : R
 export const sequenceS = <Of extends ofAp<any>>(of: Of) => <
   Ap extends ApKind<any, any> = ReturnType<Of>,
   NER extends Record<string, Ap> = any,
@@ -16,7 +15,7 @@ export const sequenceS = <Of extends ofAp<any>>(of: Of) => <
         'ERROR: All secondary generics must be of the same type. Different generics found: ',
         Rest
       ]
-    : EnforceNonEmptyRecord<NER>
+    : NER
 ): IsUnion<Rest> extends true
   ? [
       'ERROR: All secondary generics must be of the same type. Different generics found: ',
@@ -56,7 +55,7 @@ export const sequenceSFlex = <Of extends ofAp<any>>(of: Of) => <
   NER extends Record<string, Ap> = any,
   A extends any[] = (NER extends Record<string, infer A> ? A : never)['_A']
 >(
-  r: EnforceNonEmptyRecord<NER>
+  r: NER
 ): Type<
   Ap['_URI'],
   ReplaceFirst<

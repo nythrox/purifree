@@ -36,7 +36,7 @@ export const sequenceT = <Of extends ofAp<any>>(of: Of) => <
   : Type<
       Ap['_URI'],
       ReplaceFirst<
-        T[number]['_A'],
+        T extends never ? [] : T[number]['_A'],
         { [K in keyof T]: T[K] extends ApKind<any, infer A> ? A[0] : never }
       >
     > => {
