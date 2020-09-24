@@ -1,8 +1,39 @@
 import { EitherAsync } from './EitherAsync'
 import { Left, Right, Either } from './Either'
 import { Nothing, Just } from './Maybe'
-
+import { Do } from './pointfree/do'
+import { kleisli } from './pointfree/kleisli'
 describe('EitherAsync', () => {
+  // test('Kleisli', () => {
+  //   const getNameTest = kleisli(
+  //     (name: string) => Just(name.toUpperCase()),
+  //     (_name) => Just(5),
+  //     (_name) => Just(5),
+  //     (_smh) => Nothing
+  //   )
+  //   const result = getNameTest('jason')
+  //   console.log(result)
+  // })
+  test('Do', async () => {
+    const do1 = Do(function* () {
+      const num1 = yield* EitherAsync.of(10)
+      const num2 = yield* EitherAsync.of(5)
+      return num1 + num2
+    })
+    const do2 = Do(function* () {
+      const name = yield* EitherAsync.liftEither(Left(Error('error!')))
+      return name
+    })
+    const result = Do(function* () {
+      const number = yield* do1
+      const name = yield* do2
+      return {
+        number,
+        name
+      }
+    })
+    expect(await result).toEqual(Left(10))
+  })
   test('fantasy-land', () => {
     expect(EitherAsync(async () => {}).constructor).toEqual(EitherAsync)
   })
@@ -123,11 +154,11 @@ describe('EitherAsync', () => {
 
   test('chain (with PromiseLike)', async () => {
     const newEitherAsync = EitherAsync(() => Promise.resolve(5)).chain((_) =>
-      Promise.resolve(Right('val'))
+      EitherAsync.liftEither(Right('val'))
     )
     const newEitherAsync2 = EitherAsync(() => Promise.resolve(5))[
       'fantasy-land/chain'
-    ]((_) => Promise.resolve(Right('val')))
+    ]((_) => EitherAsync.liftEither(Right('val')))
 
     expect(await newEitherAsync.run()).toEqual(Right('val'))
     expect(await newEitherAsync2.run()).toEqual(Right('val'))
@@ -148,10 +179,10 @@ describe('EitherAsync', () => {
   test('chainLeft (with PromiseLike)', async () => {
     const newEitherAsync = EitherAsync(() =>
       Promise.resolve(5)
-    ).chainLeft((_) => Promise.resolve(Right(7)))
+    ).chainLeft((_) => EitherAsync.liftEither(Right(7)))
     const newEitherAsync2 = EitherAsync<number, number>(() =>
       Promise.reject(5)
-    ).chainLeft((e) => Promise.resolve(Right(e + 1)))
+    ).chainLeft((e) => EitherAsync.liftEither(Right(e + 1)))
 
     expect(await newEitherAsync.run()).toEqual(Right(5))
     expect(await newEitherAsync2.run()).toEqual(Right(6))

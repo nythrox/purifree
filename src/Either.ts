@@ -1,10 +1,32 @@
+import { List } from './List'
 import { Maybe, Just, Nothing } from './Maybe'
+import { NonEmptyList, ofAp } from './NonEmptyList'
+import { ApKind } from './pointfree/ap'
+import { ofSymbol } from './pointfree/do'
+import { pipe } from './pointfree/function-utils'
+import { ReplaceFirst, Type, URIS } from './pointfree/hkt_tst'
+import { traverse } from './pointfree/traverse'
 
 export type EitherPatterns<L, R, T> =
   | { Left: (l: L) => T; Right: (r: R) => T }
   | { _: () => T }
 
+export const EITHER_URI = 'Either'
+
+export type EITHER_URI = typeof EITHER_URI
+
+declare module './pointfree/hkt_tst' {
+  export interface URI2HKT<Types extends any[]> {
+    [EITHER_URI]: Either<Types[1], Types[0]>
+  }
+}
+
 export interface Either<L, R> {
+  readonly _URI: EITHER_URI
+  readonly _A: [R, L]
+
+  [Symbol.iterator]: () => Iterator<Either<L, R>, R, any>
+  [ofSymbol]: EitherTypeRef['of']
   /** Returns true if `this` is `Left`, otherwise it returns false */
   isLeft(): this is Either<L, never>
   /** Returns true if `this` is `Right`, otherwise it returns false */
@@ -65,6 +87,17 @@ export interface Either<L, R> {
   /** Returns `Right` if `this` is `Left` and vice versa */
   swap(): Either<R, L>
 
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    of: ofAp<URI>,
+    f: (a: R) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>>
+
+  sequence<Ap extends ApKind<any, any>>(
+    this: Either<L, Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
+  'fantasy-land/traverse': this['traverse']
+  'fantasy-land/sequence': this['sequence']
   'fantasy-land/bimap'<L2, R2>(
     f: (value: L) => L2,
     g: (value: R) => R2
@@ -154,14 +187,52 @@ export const Either: EitherTypeRef = {
 class Right<R, L = never> implements Either<L, R> {
   private _ = 'R'
 
-  constructor(private __value: R) {}
+  readonly _URI!: EITHER_URI
+  readonly _A!: [R, L]
 
+  constructor(private __value: R) {}
+  *[Symbol.iterator]() {
+    return (yield this) as R
+  }
+  [ofSymbol] = Either.of
   isLeft(): false {
     return false
   }
 
   isRight(): true {
     return true
+  }
+
+  'fantasy-land/traverse'<
+    URI extends URIS,
+    AP extends ApKind<any, any> = ApKind<URI, any>
+  >(
+    of: ofAp<URI>,
+    f: (a: R) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
+    return this.traverse(of, f)
+  }
+
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    _of: ofAp<URI>,
+    f: (a: R) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
+    const result = f(this.__value)
+    return result.map(right)
+  }
+
+  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
+    this: Either<L, Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
+    return this.sequence(of)
+  }
+
+  sequence<Ap extends ApKind<any, any>>(
+    this: Either<L, Ap>,
+    _of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
+    return (this as any).__value.map(right)
   }
 
   toJSON(): R {
@@ -176,7 +247,8 @@ class Right<R, L = never> implements Either<L, R> {
     return this.inspect()
   }
 
-  bimap<L2, R2>(_: (value: L) => L2, g: (value: R) => R2): Either<L2, R2> {
+  bimap<L2, R2>(_f: (value: L) => L2, g: (value: R) => R2): Either<L2, R2> {
+    // bimap<L2, R2>(_: (value: L) => L2, g: (value: R) => R2): Either<L2, R2> {
     return right(g(this.__value))
   }
 
@@ -316,7 +388,15 @@ Right.prototype.constructor = Either as any
 class Left<L, R = never> implements Either<L, R> {
   private _ = 'L'
 
+  readonly _URI!: EITHER_URI
+  readonly _A!: [R, L]
+
   constructor(private __value: L) {}
+
+  *[Symbol.iterator]() {
+    return (yield this) as R
+  }
+  [ofSymbol] = Either.of
 
   isLeft(): true {
     return true
@@ -338,8 +418,38 @@ class Left<L, R = never> implements Either<L, R> {
     return this.inspect()
   }
 
-  bimap<L2, R2>(f: (value: L) => L2, _: (value: R) => R2): Either<L2, R2> {
+  bimap<L2, R2>(f: (value: L) => L2, _g: (value: R) => R2): Either<L2, R2> {
+    // bimap<L2, R2>(f: (value: L) => L2, _: (value: R) => R2): Either<L2, R2> {
     return left(f(this.__value))
+  }
+
+  'fantasy-land/traverse'<
+    URI extends URIS,
+    AP extends ApKind<any, any> = ApKind<URI, any>
+  >(
+    of: ofAp<URI>,
+    f: (a: R) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
+    return this.traverse(of, f)
+  }
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    of: ofAp<URI>,
+    _f: (a: R) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
+    return of(this) as any
+  }
+
+  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
+    this: Either<L, Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
+    return this.sequence(of)
+  }
+  sequence<Ap extends ApKind<any, any>>(
+    this: Either<L, Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
+    return of(this)
   }
 
   map<R2>(_: (value: R) => R2): Either<L, R2> {
@@ -484,3 +594,25 @@ const left = <L, R = never>(value: L): Either<L, R> => new Left(value)
 const right = <R, L = never>(value: R): Either<L, R> => new Right(value)
 
 export { left as Left, right as Right }
+
+export type IsLeft = {
+  <L, R>(either: Either<L, R>): either is Either<L, never>
+}
+
+export type IsRight = {
+  <L, R>(either: Either<L, R>): either is Either<never, R>
+}
+export const isLeft: IsLeft = <L, R>(
+  either: Either<L, R>
+): either is Either<L, never> => either.isLeft()
+export const isRight: IsRight = <L, R>(
+  either: Either<L, R>
+): either is Either<never, R> => either.isRight()
+
+// const v = right(0).traverse(Maybe.of, (n) => Just(n + 'n'))
+// const sla = pipe(
+//   right(0),
+//   traverse(Maybe.of, (n) => Just(n + 'n'))
+// )
+
+// const hoi = right(Just(0)).sequence(Maybe.of)

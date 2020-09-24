@@ -68,7 +68,7 @@ describe('MaybeAsync', () => {
 
   test('chain (with PromiseLike)', async () => {
     const newMaybeAsync = MaybeAsync(() => Promise.resolve(5)).chain((_) =>
-      Promise.resolve(Just('val'))
+      MaybeAsync.liftMaybe(Just('val'))
     )
     const newMaybeAsync2 = MaybeAsync(() => Promise.resolve(5))[
       'fantasy-land/chain'

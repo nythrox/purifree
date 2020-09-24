@@ -1,3 +1,4 @@
+
 export interface TupleTypeRef {
   <F, S>(fst: F, snd: S): Tuple<F, S>
   /** Applies two functions over a single value and constructs a tuple from the results */
@@ -13,9 +14,23 @@ export interface TupleTypeRef {
   fromArray<F, S>([fst, snd]: [F, S]): Tuple<F, S>
 }
 
-export interface Tuple<F, S> extends Iterable<F | S>, ArrayLike<F | S> {
+export const TUPLE_URI = 'Tuple'
+export type TUPLE_URI = typeof TUPLE_URI
+
+declare module './pointfree/hkt_tst' {
+  export interface URI2HKT<Types extends any[]> {
+    [TUPLE_URI]: Tuple<Types[1], Types[0]>
+  }
+}
+export interface Tuple<F, S>
+  extends Iterable<F | S>,
+    ArrayLike<F | S> {
   0: F
   1: S
+
+  readonly _URI: TUPLE_URI
+  readonly _A: [S, F]
+
   [index: number]: F | S
   length: 2
   toJSON(): [F, S]
@@ -69,6 +84,9 @@ class TupleImpl<F, S> implements Tuple<F, S> {
     this[0] = first
     this[1] = second
   }
+
+  readonly _URI!: TUPLE_URI
+  readonly _A!: [S, F];
 
   *[Symbol.iterator]() {
     yield this.first
