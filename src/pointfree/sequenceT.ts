@@ -62,7 +62,6 @@ export const sequenceTFlex = <Of extends ofAp<any>>(of: Of) => <
 //   // Right<string, string>('hello'),
 //   Right<number, Error>(2)
 // )
-const resOK = sequenceT(Either.of)(
-  // Right<string, Error>('hello'),
-  Right<number, Error>(2)
-)
+
+// sequenceTTest :: Either<never, [number, string, boolean]>
+// const sequenceTTest = sequenceT(Either.of)(Right(2), Right('name'), Right(true))

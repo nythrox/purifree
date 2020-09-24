@@ -1,4 +1,4 @@
-import { Right } from '..'
+import { Either, Right } from '..'
 import { ofAp } from '../NonEmptyList'
 import { ApKind } from './ap'
 import { IsUnion } from './do'
@@ -72,8 +72,10 @@ export const sequenceSFlex = <Of extends ofAp<any>>(of: Of) => <
 //   name: Right<string, Error>('jason'),
 //   age: Right<number, string>(100)
 // })
-// const result = sequenceS(Either.of)({
-//   name: Right<string, string>('jason'),
+
+// sequenceStrutureTest :: Either<string, { name: string, age: number }>
+// const sequenceStrutureTest = sequenceS(Either.of)({
+//   name: Right<string, string>('name'),
 //   age: Right<number, string>(100)
 // })
 

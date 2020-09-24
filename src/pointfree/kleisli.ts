@@ -149,13 +149,15 @@ export function kleisli<
 //   const res1 = a(...args)
 //   return res1.chain(b)
 // }
-// const getNameTest = kleisiFlow(
-//   (name: string) => Just(name.toUpperCase()),
-//   (_name) => Just(5),
-//   (_name) => Just(5),
-//   (_smh) => Nothing
-// )
-// const result = getNameTest('jason')
+
+// getNameTest :: ( name?: string ) => Maybe<string>
+const getNameTest = kleisli(
+  (name?: string) => name ? Just(name) : Nothing,
+  (name) => Just(name.toUpperCase()),
+  (uppercasedName) => uppercasedName.length > 3 ? Just(uppercasedName) : Nothing
+)
+// result :: Maybe<string>
+const result = getNameTest('jason')
 
 /* 
   final case class Kleisli[F[_], A, B](run: A => F[B]) {

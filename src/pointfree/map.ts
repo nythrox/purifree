@@ -12,7 +12,3 @@ export const map = <Functor extends FunctorKind<any, any>, B = any>(
 ) => (fa: Functor): Type<Functor['_URI'], ReplaceFirst<Functor['_A'], B>> => {
   return fa.map(f)
 }
-
-
-
-
