@@ -8,6 +8,7 @@ import {
   ofAp,
   Right
 } from '..'
+import { EitherAsync } from '../EitherAsync'
 import { ApKind } from './ap'
 import { pipe } from './function-utils'
 import { HKT, ReplaceFirst, Type, URIS, of } from './hkt_tst'
@@ -23,7 +24,9 @@ export interface SequenceableKind<F extends URIS, A extends any[]>
 }
 export const sequence = <
   Sequenceable extends SequenceableKind<any, [ApKind<any, any>, ...any]>,
-  Values = Sequenceable extends HKT<any, infer Args> ? Args : never,
+  Values extends any[] = Sequenceable extends HKT<any, infer Args>
+    ? Args
+    : never,
   Ap0 = Values extends any[] ? Values[0] : never,
   Ap = Ap0 extends ApKind<infer ApUri, infer ApArgs>
     ? ApKind<ApUri, ApArgs>
@@ -35,7 +38,10 @@ export const sequence = <
 ): Ap extends ApKind<any, any>
   ? Type<
       Ap['_URI'],
-      ReplaceFirst<Ap['_A'], Type<Sequenceable['_URI'], Ap['_A']>>
+      ReplaceFirst<
+        Ap['_A'],
+        Type<Sequenceable['_URI'], ReplaceFirst<Values, Ap['_A'][0]>>
+      >
     >
   : never => {
   return seq.sequence(of)
@@ -45,10 +51,10 @@ export const sequence = <
 
 // const seqtest2 = pipe(NonEmptyList(Just(0)), sequence(Maybe))
 
-// const seqtestNEL = pipe(
-//   Right(1),
-//   traverse(NonEmptyList, (num) => NonEmptyList(1))
-// )
+const seqtestNEL = pipe(
+  Right<EitherAsync<never, number>, Error>(EitherAsync.of(1)),
+  sequence(EitherAsync.of)
+)
 
 // const seqtestL = pipe(
 //   Right(1),

@@ -1,7 +1,9 @@
 import { Just, Left, Right } from '..'
 import { EitherAsync } from '../EitherAsync'
 import { chain, Chainable } from './chain'
-import { AssertEqual, HKT, of, ReplaceFirst, Type, URIS } from './hkt_tst'
+import { flow, pipe } from './function-utils'
+import { HKT, of, ReplaceFirst, Type, URIS } from './hkt_tst'
+import { map } from './map'
 export const ofSymbol = Symbol('of')
 export interface GeneratableKind<F extends URIS, A extends any[]>
   extends Chainable<F, A> {
@@ -72,32 +74,68 @@ export function Do<
   return run(state)
 }
 
-type smh = [number, never] extends any ? true : false
-type test4 = AssertEqual<
-  EitherAsync<never, number>,
-  GeneratableKind<'EitherAsync', any>
->
-type test2 = AssertEqual<
-  EitherAsync<never, number>,
-  Chainable<'EitherAsync', any>
->
-type test3 = AssertEqual<EitherAsync<never, number>, EitherAsync<any, any>>
-type smhz<T extends Chainable<'EitherAsync', any>> = T
+// type smh = [number, never] extends any ? true : false
+// type test4 = AssertEqual<
+//   EitherAsync<never, number>,
+//   GeneratableKind<'EitherAsync', any>
+// >
+// type test2 = AssertEqual<
+//   EitherAsync<never, number>,
+//   Chainable<'EitherAsync', any>
+// >
+// type test3 = AssertEqual<EitherAsync<never, number>, EitherAsync<any, any>>
+// type smhz<T extends Chainable<'EitherAsync', any>> = T
 
-type why = smhz<EitherAsync<never, string>>
-type h = Chainable<'EitherAsync', [never, string]>['chain']
-type v = Chainable<'EitherAsync', [number, never]>
-type v2 = EitherAsync<number, never>
-type test = EitherAsync<never, number>['_A'] extends any ? true : false
+// type why = smhz<EitherAsync<never, string>>
+// type h = Chainable<'EitherAsync', [never, string]>['chain']
+// type v = Chainable<'EitherAsync', [number, never]>
+// type v2 = EitherAsync<number, never>
+// type test = EitherAsync<never, number>['_A'] extends any ? true : false
 
+// result :: Either<Error, { name: string, surname: string, favoriteColor: string }>
 // const result = Do(function* () {
-//   const h = yield* Right(10)
-//   const w = yield* Left(Error())
-//   // yield* Just(Error())
-//   const zw = yield* Right('hi')
-//   return 'jasno' + zw
+//   // name :: string
+//   const name = yield* Right('Jason')
+//   // surname :: string
+//   const surname = yield* Right('Santiago')
+//   // favoriteColor :: string
+//   const favoriteColor = yield* Left<Error, string>(Error('DB error!'))
+//   return {
+//     name,
+//     surname,
+//     favoriteColor
+//   }
 // })
 
+// // result :: Either<Error, { name: string, surname: string, favoriteColor: string }>
+// const result1 = Right<string, Error>('jason').chain((name) =>
+//   Right<string, Error>('Santiago').chain((surname) =>
+//     Left<Error, string>(Error('DB error!')).map((favoriteColor) => ({
+//       name,
+//       surname,
+//       favoriteColor
+//     }))
+//   )
+// )
+
+// const result2 = pipe(
+//   Right<string, Error>('Jason'),
+//   chain((name) =>
+//     pipe(
+//       Right<string, Error>('Santiago'),
+//       chain((surname) =>
+//         pipe(
+//           Left<Error, string>(Error('DB error!')),
+//           map((favoriteColor) => ({
+//             name: name,
+//             surname,
+//             favoriteColor
+//           }))
+//         )
+//       )
+//     )
+//   )
+// )
 // const resultFlex = DoFlex(function* () {
 //   const h = yield* Right(10)
 //   const w = yield* Left(Error())

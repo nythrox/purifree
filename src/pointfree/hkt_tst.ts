@@ -111,12 +111,12 @@ export interface URI2HKT<Types extends any[]> {}
 
 export type of<URI extends URIS> = <T>(value: T) => HKT<URI, [T, ...any]>
 
-export type AssertEqual<A, B, R = A extends B ? true : false> = R
-type test1 = AssertEqual<Either<any, any>, HKT<any, any>>
-type test2 = AssertEqual<HKT<any, any>, Either<any, any>>
-type test3 = AssertEqual<Type<'Either', any>, Either<any, any>>
+// export type AssertEqual<A, B, R = A extends B ? true : false> = R
+// type test1 = AssertEqual<Either<any, any>, HKT<any, any>>
+// type test2 = AssertEqual<HKT<any, any>, Either<any, any>>
+// type test3 = AssertEqual<Type<'Either', any>, Either<any, any>>
 
-type sla = [number, never] extends any[] ? true : false
+// type sla = [number, never] extends any[] ? true : false
 
 const chainableForAll1 = Right(0)
   .map((num) => num * 2)
@@ -131,34 +131,48 @@ const chainableForAll1 = Right(0)
   })
   .map((scnd) => scnd * 2)
 
-const chainableForAll2 = EitherAsync.liftEither(
-  Right<Tuple<number, number>, Error>(chainableForAll1)
-).map((e) => e.reduce((prev, curr) => prev + curr, 0))
+// const chainableForAll2 = EitherAsync.liftEither(
+//   Right<Tuple<number, number>, Error>(chainableForAll1)
+// ).map((e) => e.reduce((prev, curr) => prev + curr, 0))
 
 const pointfreeForAll = pipe(
-  // Either
+  // Either<never, number>
   Right(0),
   map((num) => num * 2),
   match({
     Right: () => Just(5),
     Left: () => Just(5)
   }),
-  // Just
+  // Maybe<number>
   map((num) => num * 2),
   match({
     Just: (n) => Tuple(n, 2),
     Nothing: () => Tuple(1, 2)
   }),
-  // Tuple
+  // Tuple<number, number>
   map((scnd) => scnd * 2),
-  // EitherAsync
-  (tuple) => EitherAsync.liftEither(Right(tuple)),
+  (tuple) => EitherAsync.of<Error>(tuple),
+  // EitherAsync<Error, Tuple<number, number>>
   map(reduce((prev, curr) => prev + curr, 0))
+  // EitherAsync<Error, number>
 )
 
-pointfreeForAll
+const pointFree = EitherAsync.of<Error>(
+  Right(0)
+    .map((num) => num * 2)
+    .caseOf({
+      Right: () => Just(5),
+      Left: () => Just(5)
+    })
+    .map((num) => num * 2)
+    .caseOf({
+      Just: (n) => Tuple(n, 2),
+      Nothing: () => Tuple(1, 2)
+    })
+    .map((scnd) => scnd * 2)
+).map(reduce((prev, curr) => prev + curr, 0))
 
-const createValidator = <A, L, R>(
+export const createValidator = <A, L, R>(
   validator: (value: A) => Either<L, R>,
   ...validators: ((value: A) => Either<L, R>)[]
 ) => (arg: A) => {
@@ -167,7 +181,7 @@ const createValidator = <A, L, R>(
   ) as NonEmptyList<Either<R, L>>
   return pipe(results, sequence(Either.of), swap())
 }
-const createAsyncValidator = <A, L, R>(
+export const createAsyncValidator = <A, L, R>(
   validator: (value: A) => EitherAsync<L, R>,
   ...validators: ((value: A) => EitherAsync<L, R>)[]
 ) => (arg: A) => {
@@ -177,16 +191,16 @@ const createAsyncValidator = <A, L, R>(
   return pipe(results, sequence(EitherAsync.of), swap())
 }
 
-const minLength = (s: string): Either<Error, string> =>
-  s.length >= 6 ? Right(s) : Left(Error('at least 6 characters'))
+// const minLength = (s: string): Either<Error, string> =>
+//   s.length >= 6 ? Right(s) : Left(Error('at least 6 characters'))
 
-const oneCapital = (s: string): Either<Error, string> =>
-  /[A-Z]/g.test(s) ? Right(s) : Left(Error('at least one capital letter'))
+// const oneCapital = (s: string): Either<Error, string> =>
+//   /[A-Z]/g.test(s) ? Right(s) : Left(Error('at least one capital letter'))
 
-const oneNumber = (s: string): Either<Error, string> =>
-  /[0-9]/g.test(s) ? Right(s) : Left(Error('at least one number'))
+// const oneNumber = (s: string): Either<Error, string> =>
+//   /[0-9]/g.test(s) ? Right(s) : Left(Error('at least one number'))
 
-const validatePassword = createValidator(minLength, oneCapital, oneNumber)
+// const validatePassword = createValidator(minLength, oneCapital, oneNumber)
 
 // const test = pipe(
 //   Right('jason'),
