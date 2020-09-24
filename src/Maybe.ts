@@ -107,7 +107,6 @@ export interface Maybe<T> {
 }
 
 interface MaybeTypeRef {
-  <T>(value: T): Maybe<T>
   /** Takes a value and wraps it in a `Just` */
   of<T>(value: T): Maybe<T>
   /** Returns `Nothing` */
@@ -136,75 +135,70 @@ interface MaybeTypeRef {
   'fantasy-land/zero'(): Nothing
 }
 
-export const Maybe: MaybeTypeRef = Object.assign(
-  <R>(value: R): Maybe<R> => {
+export const Maybe: MaybeTypeRef = {
+  of<T>(value: T): Maybe<T> {
     return just(value)
   },
-  {
-    of<T>(value: T): Maybe<T> {
-      return just(value)
-    },
-    empty(): Nothing {
-      return nothing
-    },
-    zero(): Nothing {
-      return nothing
-    },
-    fromNullable<T>(value: T | undefined | null | void): Maybe<T> {
-      return value == null ? nothing : just(value)
-    },
-    fromFalsy<T>(value: T | undefined | null | void): Maybe<T> {
-      return value ? just(value) : nothing
-    },
-    fromPredicate<T>(pred: (value: T) => boolean, value?: T): any {
-      switch (arguments.length) {
-        case 1:
-          return (value: T) => Maybe.fromPredicate(pred, value)
-        default:
-          return pred(value!) ? just(value!) : nothing
-      }
-    },
-    mapMaybe<T, U>(f: (value: T) => Maybe<U>, list?: T[]): any {
-      switch (arguments.length) {
-        case 1:
-          return (list: T[]) => Maybe.mapMaybe(f, list)
-        default:
-          return Maybe.catMaybes(list!.map(f))
-      }
-    },
-    catMaybes<T>(list: Maybe<T>[]): T[] {
-      let res: T[] = []
-
-      for (const e of list) {
-        if (e.isJust()) {
-          res.push(e.extract())
-        }
-      }
-
-      return res
-    },
-    encase<T>(thunk: () => T): Maybe<T> {
-      try {
-        return just(thunk())
-      } catch {
-        return nothing
-      }
-    },
-    isMaybe<T>(x: unknown): x is Maybe<T> {
-      return x instanceof Just || x instanceof Nothing
-    },
-
-    'fantasy-land/of'<T>(value: T): Maybe<T> {
-      return this.of(value)
-    },
-    'fantasy-land/empty'(): Nothing {
-      return this.empty()
-    },
-    'fantasy-land/zero'(): Nothing {
-      return this.zero()
+  empty(): Nothing {
+    return nothing
+  },
+  zero(): Nothing {
+    return nothing
+  },
+  fromNullable<T>(value: T | undefined | null | void): Maybe<T> {
+    return value == null ? nothing : just(value)
+  },
+  fromFalsy<T>(value: T | undefined | null | void): Maybe<T> {
+    return value ? just(value) : nothing
+  },
+  fromPredicate<T>(pred: (value: T) => boolean, value?: T): any {
+    switch (arguments.length) {
+      case 1:
+        return (value: T) => Maybe.fromPredicate(pred, value)
+      default:
+        return pred(value!) ? just(value!) : nothing
     }
+  },
+  mapMaybe<T, U>(f: (value: T) => Maybe<U>, list?: T[]): any {
+    switch (arguments.length) {
+      case 1:
+        return (list: T[]) => Maybe.mapMaybe(f, list)
+      default:
+        return Maybe.catMaybes(list!.map(f))
+    }
+  },
+  catMaybes<T>(list: Maybe<T>[]): T[] {
+    let res: T[] = []
+
+    for (const e of list) {
+      if (e.isJust()) {
+        res.push(e.extract())
+      }
+    }
+
+    return res
+  },
+  encase<T>(thunk: () => T): Maybe<T> {
+    try {
+      return just(thunk())
+    } catch {
+      return nothing
+    }
+  },
+  isMaybe<T>(x: unknown): x is Maybe<T> {
+    return x instanceof Just || x instanceof Nothing
+  },
+
+  'fantasy-land/of'<T>(value: T): Maybe<T> {
+    return this.of(value)
+  },
+  'fantasy-land/empty'(): Nothing {
+    return this.empty()
+  },
+  'fantasy-land/zero'(): Nothing {
+    return this.zero()
   }
-)
+}
 
 class Just<T> implements Maybe<T> {
   constructor(private __value: T) {}
