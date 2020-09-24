@@ -50,11 +50,11 @@ type getKleisiInfo<
   A = Monad['_A'][0]
 > = { Monad: Monad; URI: URI; Generics: Generics; A: A }
 
-function kleisiFlow<
+export function kleisli<
   func1 extends (...args: any) => Chainable<any, any>,
   info extends KleisiInfo = getKleisiInfo<func1>
 >(a: func1): (...args: Parameters<func1>) => TypeFromHKT<info['Monad'], []>
-function kleisiFlow<
+export function kleisli<
   func1 extends (...args: any) => Chainable<any, any>,
   info extends KleisiInfo = getKleisiInfo<func1>,
   B = any
@@ -62,7 +62,7 @@ function kleisiFlow<
   a: func1,
   b: (arg: info['A']) => HKTFrom<info['Monad'], [B]>
 ): (...args: Parameters<func1>) => TypeFromHKT<info['Monad'], [B]>
-function kleisiFlow<
+export function kleisli<
   func1 extends (...args: any) => Chainable<any, any>,
   info extends KleisiInfo = getKleisiInfo<func1>,
   B = any,
@@ -72,7 +72,7 @@ function kleisiFlow<
   b: (arg: info['A']) => HKTFrom<info['Monad'], [B]>,
   c: (arg: B) => HKTFrom<info['Monad'], [C]>
 ): (...args: Parameters<func1>) => TypeFromHKT<info['Monad'], [C]>
-function kleisiFlow<
+export function kleisli<
   func1 extends (...args: any) => Chainable<any, any>,
   info extends KleisiInfo = getKleisiInfo<func1>,
   B = any,
@@ -85,7 +85,7 @@ function kleisiFlow<
   d: (arg: C) => HKTFrom<info['Monad'], [D]>
 ): (...args: Parameters<func1>) => TypeFromHKT<info['Monad'], [D]>
 
-function kleisiFlow<
+export function kleisli<
   func1 extends (...args: any) => Chainable<any, any>,
   info extends KleisiInfo = getKleisiInfo<func1>,
   B = any,
@@ -100,7 +100,7 @@ function kleisiFlow<
   e: (arg: D) => HKTFrom<info['Monad'], [E]>
 ): (...args: Parameters<func1>) => TypeFromHKT<info['Monad'], [E]>
 
-function kleisiFlow<
+export function kleisli<
   func1 extends (...args: any) => Chainable<any, any>,
   info extends KleisiInfo = getKleisiInfo<func1>,
   B = any,
@@ -117,7 +117,7 @@ function kleisiFlow<
   f: (arg: E) => HKTFrom<info['Monad'], [F]>
 ): (...args: Parameters<func1>) => TypeFromHKT<info['Monad'], [F]>
 
-function kleisiFlow<
+export function kleisli<
   T extends KleisliFunction<any, any, any>[],
   M extends Chainable<any, any> = ReturnType<T[0]>
 >(...fns: T) {
@@ -149,13 +149,13 @@ function kleisiFlow<
 //   const res1 = a(...args)
 //   return res1.chain(b)
 // }
-const getNameTest = kleisiFlow(
-  (name: string) => Just(name.toUpperCase()),
-  (_name) => Just(5),
-  (_name) => Just(5),
-  (_smh) => Nothing
-)
-const result = getNameTest('jason')
+// const getNameTest = kleisiFlow(
+//   (name: string) => Just(name.toUpperCase()),
+//   (_name) => Just(5),
+//   (_name) => Just(5),
+//   (_smh) => Nothing
+// )
+// const result = getNameTest('jason')
 
 /* 
   final case class Kleisli[F[_], A, B](run: A => F[B]) {
