@@ -78,22 +78,22 @@ export interface ChainableNonHKT<T> {
     ChainableNonHKT<T2>
   ) => ChainableNonHKT<T2>
 }
-const sla = pipe(
-  Right<number, Error>(0),
-  chain(() => Right<string, Error>('hi'))
-  // chain(() => Left('hi'))
-)
-const sla2 = pipe(
-  EitherAsync.liftEither(Right(0)),
-  chain(() => EitherAsync.liftEither(Right('')))
-)
-const restura2 = pipe(
-  // Future(
-  Right<{ name: string }, Error>({
-    name: 'jason'
-  }),
-  // ),
-  // (e) => {}
-  // map(e => {})
-  chain((_user) => Left(Error('whataever')))
-)
+// const sla = pipe(
+//   Right<number, Error>(0),
+//   chain(() => Right<string, Error>('hi'))
+//   // chain(() => Left('hi'))
+// )
+// const sla2 = pipe(
+//   EitherAsync.liftEither(Right(0)),
+//   chain(() => EitherAsync.liftEither(Right('')))
+// )
+// const restura2 = pipe(
+//   // Future(
+//   Right<{ name: string }, Error>({
+//     name: 'jason'
+//   }),
+//   // ),
+//   // (e) => {}
+//   // map(e => {})
+//   chain((_user) => Left(Error('whataever')))
+// )

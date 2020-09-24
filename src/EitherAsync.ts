@@ -1,6 +1,6 @@
 import { Either, Left, Right } from './Either'
 import { MaybeAsync } from './MaybeAsync'
-import { GeneratableKind } from './pointfree/do'
+import { ofSymbol } from './pointfree/do'
 import { Type } from './pointfree/hkt_tst'
 
 export const EITHER_ASYNC_URI = 'EitherAsync'
@@ -16,8 +16,7 @@ export interface EitherAsyncTypeRef {
   <L, R>(
     runPromise: (helpers: EitherAsyncHelpers<L>) => PromiseLike<R>
   ): EitherAsync<L, R>
-
-  of<L, R>(value: R): EitherAsync<L, R>
+  of<L = never, R = any>(value: R): EitherAsync<L, R>
   /** Constructs an `EitherAsync` object from a function that returns an Either wrapped in a Promise */
   fromPromise<L, R>(f: () => PromiseLike<Either<L, R>>): EitherAsync<L, R>
   /** Constructs an `EitherAsync` object from a function that returns a Promise. The left type is defaulted to the built-in Error type */
@@ -36,6 +35,7 @@ export interface EitherAsync<L, R> extends PromiseLike<Either<L, R>> {
   readonly _URI: EITHER_ASYNC_URI
   readonly _A: [R, L]
 
+  [ofSymbol]: EitherAsyncTypeRef['of']
   [Symbol.iterator]: () => Iterator<Type<EITHER_ASYNC_URI, [R, L]>, R, any>
 
   /**
@@ -143,7 +143,10 @@ class EitherAsyncImpl<L, R> implements EitherAsync<L, R> {
   readonly _URI!: EITHER_ASYNC_URI
   readonly _A!: [R, L];
 
-  [Symbol.iterator]: () => Iterator<Type<EITHER_ASYNC_URI, [R, L]>, R, R>
+  *[Symbol.iterator]() {
+    return (yield this) as R
+  }
+  [ofSymbol] = EitherAsync.of
 
   async leftOrDefault(defaultValue: L): Promise<L> {
     const either = await this.run()

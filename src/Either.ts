@@ -2,6 +2,7 @@ import { List } from './List'
 import { Maybe, Just, Nothing } from './Maybe'
 import { NonEmptyList, ofAp } from './NonEmptyList'
 import { ApKind } from './pointfree/ap'
+import { ofSymbol } from './pointfree/do'
 import { pipe } from './pointfree/function-utils'
 import { ReplaceFirst, Type, URIS } from './pointfree/hkt_tst'
 import { traverse } from './pointfree/traverse'
@@ -25,7 +26,7 @@ export interface Either<L, R> {
   readonly _A: [R, L]
 
   [Symbol.iterator]: () => Iterator<Either<L, R>, R, any>
-
+  [ofSymbol]: EitherTypeRef['of']
   /** Returns true if `this` is `Left`, otherwise it returns false */
   isLeft(): this is Either<L, never>
   /** Returns true if `this` is `Right`, otherwise it returns false */
@@ -190,7 +191,10 @@ class Right<R, L = never> implements Either<L, R> {
   readonly _A!: [R, L]
 
   constructor(private __value: R) {}
-  [Symbol.iterator]: () => Iterator<Either<L, R>, R, any>
+  *[Symbol.iterator]() {
+    return (yield this) as R
+  }
+  [ofSymbol] = Either.of
   isLeft(): false {
     return false
   }
@@ -389,7 +393,10 @@ class Left<L, R = never> implements Either<L, R> {
 
   constructor(private __value: L) {}
 
-  [Symbol.iterator]: () => Iterator<Either<L, R>, R, any>
+  *[Symbol.iterator]() {
+    return (yield this) as R
+  }
+  [ofSymbol] = Either.of
 
   isLeft(): true {
     return true

@@ -2,6 +2,7 @@ import { Either, Left, Right } from './Either'
 import { List } from './List'
 import { NonEmptyList, ofAp } from './NonEmptyList'
 import { ApKind } from './pointfree/ap'
+import { ofSymbol } from './pointfree/do'
 import { pipe } from './pointfree/function-utils'
 import { ReplaceFirst, Type, URIS } from './pointfree/hkt_tst'
 import { sequence } from './pointfree/sequence'
@@ -30,6 +31,7 @@ export interface Maybe<T> {
   readonly _URI: MAYBE_URI
   readonly _A: [T]
 
+  [ofSymbol]: MaybeTypeRef['of']
   [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [T]>, T, any>
   /** Returns true if `this` is `Just`, otherwise it returns false */
   isJust(): this is AlwaysJust
@@ -203,7 +205,10 @@ export const Maybe: MaybeTypeRef = {
 class Just<T> implements Maybe<T> {
   constructor(private __value: T) {}
 
-  [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [never]>, never, any>
+  *[Symbol.iterator]() {
+    return (yield this) as T
+  }
+  [ofSymbol] = Maybe.of
 
   readonly _URI!: MAYBE_URI
   readonly _A!: [T]
@@ -383,7 +388,10 @@ class Just<T> implements Maybe<T> {
 Just.prototype.constructor = Maybe as any
 
 class Nothing implements Maybe<never> {
-  [Symbol.iterator]: () => Iterator<Type<MAYBE_URI, [never]>, never, any>
+  *[Symbol.iterator]() {
+    return (yield this) as never
+  }
+  [ofSymbol] = Maybe.of
 
   private __value!: never
 

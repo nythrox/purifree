@@ -1,10 +1,12 @@
 import { Maybe, Just, Nothing } from './Maybe'
 import { EitherAsync } from './EitherAsync'
 import { Type } from './pointfree/hkt_tst'
+import { ofSymbol } from './pointfree/do'
 
 export interface MaybeAsyncTypeRef {
   /** Constructs a MaybeAsync object from a function that takes an object full of helpers that let you lift things into the MaybeAsync context and returns a Promise */
   <T>(runPromise: (helpers: MaybeAsyncHelpers) => PromiseLike<T>): MaybeAsync<T>
+  of<T>(value: T): MaybeAsync<T>
   /** Constructs an MaybeAsync object from a function that returns a Maybe wrapped in a Promise */
   fromPromise<T>(f: () => Promise<Maybe<T>>): MaybeAsync<T>
   /** Constructs an MaybeAsync object from a function that returns a Promise */
@@ -28,6 +30,7 @@ export interface MaybeAsync<T> extends PromiseLike<Maybe<T>> {
   readonly _A: [T]
 
   [Symbol.iterator]: () => Iterator<Type<MAYBE_ASYNC_URI, [T]>, T, T>
+  [ofSymbol]: MaybeAsyncTypeRef['of']
 
   /**
    * It's important to remember how `run` will behave because in an
@@ -102,10 +105,17 @@ const helpers: MaybeAsyncHelpers = {
 
 class MaybeAsyncImpl<T> implements MaybeAsync<T> {
   [Symbol.toStringTag]: 'MaybeAsync' = 'MaybeAsync'
-
   constructor(
     private runPromise: (helpers: MaybeAsyncHelpers) => PromiseLike<T>
   ) {}
+  
+  readonly _URI!: MAYBE_ASYNC_URI
+  readonly _A!: [T];
+
+  *[Symbol.iterator]() {
+    return (yield this) as T
+  }
+  [ofSymbol] = MaybeAsync.of
   async orDefault(defaultValue: T): Promise<T> {
     const maybe = await this.run()
     return maybe.orDefault(defaultValue)
@@ -163,11 +173,6 @@ class MaybeAsyncImpl<T> implements MaybeAsync<T> {
   'fantasy-land/filter'(pred: (value: T) => boolean): MaybeAsync<T> {
     return this.filter(pred)
   }
-
-  readonly _URI!: MAYBE_ASYNC_URI
-  readonly _A!: [T];
-
-  [Symbol.iterator]: () => Iterator<Type<MAYBE_ASYNC_URI, [T]>, T, T>
 
   async run(): Promise<Maybe<T>> {
     try {
@@ -240,6 +245,9 @@ export const MaybeAsync: MaybeAsyncTypeRef = Object.assign(
     runPromise: (helpers: MaybeAsyncHelpers) => PromiseLike<T>
   ): MaybeAsync<T> => new MaybeAsyncImpl(runPromise),
   {
+    of<T>(value: T): MaybeAsync<T> {
+      return MaybeAsync.liftMaybe(Just(value))
+    },
     catMaybes: async <T>(list: MaybeAsync<T>[]): Promise<T[]> => {
       const values = await Promise.all(list)
       return Maybe.catMaybes(values)

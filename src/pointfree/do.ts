@@ -1,11 +1,12 @@
 import { Just, Left, Right } from '..'
 import { EitherAsync } from '../EitherAsync'
-import { Chainable } from './chain'
-import { AssertEqual, HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
-
+import { chain, Chainable } from './chain'
+import { AssertEqual, HKT, of, ReplaceFirst, Type, URIS } from './hkt_tst'
+export const ofSymbol = Symbol('of')
 export interface GeneratableKind<F extends URIS, A extends any[]>
   extends Chainable<F, A> {
   [Symbol.iterator]: () => Iterator<Type<F, A>, A[0], any>
+  [ofSymbol]: of<F>
 }
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
@@ -43,7 +44,7 @@ export function Do<
   SecondaryGenericsError = IsUnion<Rest> extends true ? true : false,
   MultipleMonadsError = IsUnion<URI> extends true ? true : false
 >(
-  _fun: MultipleMonadsError extends true
+  fun: MultipleMonadsError extends true
     ? [
         'ERROR: Cannot have monads of different types in do* notation. Different monads found:',
         URI
@@ -55,7 +56,20 @@ export function Do<
       ]
     : () => Generator<Generatable, R, any>
 ): Type<URI, ReplaceFirst<Generatable['_A'], R>> {
-  return null as any
+  const iterator = (fun as () => Generator<Generatable, R, any>)()
+  const state = iterator.next()
+  const of = (state.value as Generatable)[ofSymbol]
+  function run(state: IteratorResult<Generatable, R>): any {
+    // console.log('received state: ',state.value)
+    if (state.done) {
+      return of(state.value)
+    }
+    return state.value.chain((val) => {
+      // console.log('inside chain: ',val)
+      return run(iterator.next(val))
+    })
+  }
+  return run(state)
 }
 
 type smh = [number, never] extends any ? true : false
@@ -76,39 +90,18 @@ type v = Chainable<'EitherAsync', [number, never]>
 type v2 = EitherAsync<number, never>
 type test = EitherAsync<never, number>['_A'] extends any ? true : false
 
-const result = Do(function* () {
-  const h = yield* Right(10)
-  const w = yield* Left(Error())
-  // yield* Just(Error())
-  const zw = yield* Right('hi')
-  return 'jasno' + zw
-})
+// const result = Do(function* () {
+//   const h = yield* Right(10)
+//   const w = yield* Left(Error())
+//   // yield* Just(Error())
+//   const zw = yield* Right('hi')
+//   return 'jasno' + zw
+// })
 
-const resultFlex = DoFlex(function* () {
-  const h = yield* Right(10)
-  const w = yield* Left(Error())
-  const zw = yield* Right('hi')
-  const w0 = yield* Left('sstring')
-  return 'jasno' + zw
-})
-
-const restura = Do(function* () {
-  const user = yield* EitherAsync.liftEither(
-    Right<{ name: string }, Error>({
-      name: 'jason'
-    })
-  )
-  // if (user.name != 'jason') {
-  //   yield* EitherAsync.liftEither(Left('Not cool bro !'))
-  // }
-  // if (user.name.length < 3) {
-  //   yield* EitherAsync.liftEither(
-  //     Left({
-  //       error: 'erro !!!'
-  //     })
-  //   )
-  // }
-  return user.name
-})
-
-
+// const resultFlex = DoFlex(function* () {
+//   const h = yield* Right(10)
+//   const w = yield* Left(Error())
+//   const zw = yield* Right('hi')
+//   const w0 = yield* Left('sstring')
+//   return 'jasno' + zw
+// })
