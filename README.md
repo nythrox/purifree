@@ -11,13 +11,16 @@
 
 # Purifree
 Purifree is a fork from <a href="https://github.com/gigobyte/purify">Purify</a> that allows you to program in a point-free style, and adds a few new capabilities.
-# What is purify?
-
+# What is Purify?
 Purify is a library for functional programming in TypeScript.
 Its purpose is to allow developers to use popular patterns and abstractions that are available in most functional languages.
 Learn more about Purify <a href="https://github.com/gigobyte/purify">here</a>
-
-# Purify compatability
+# How to start?
+Purifree is available as a package on npm. You can install it with a package manager of your choice:
+```
+$ npm install purifree-ts
+```
+# Purifree compatability
 Purifree is 100% compatible with purify, and can be used interchangeably.
 ## Point-free style
 Point-free style:
