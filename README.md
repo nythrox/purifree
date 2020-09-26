@@ -22,12 +22,12 @@ $ npm install purifree-ts
 ```
 # Purifree compatability
 Purifree is 100% compatible with purify, and can be used interchangeably.
-## Point-free style
-Point-free style:
+## Point-free style 
+Point-free functions can be used with any ADTs (without needing module-specific imports), and can also be used together with the chainable (<a href="https://github.com/gigobyte/purify">purify</a>) API. 
 ```typescript
 // pointfree :: EitherAsync<Error, number>
 const pointfree = pipe(
-  // Either<never, number>
+// Either<never, number>
   Right(0),
   map(num => num * 2),
   match({
@@ -47,33 +47,6 @@ const pointfree = pipe(
   map(reduce((prev, curr) => prev + curr, 0))
   // EitherAsync<Error, number>
 )
-```
-Chainable style:
-```typescript
-// chainable :: EitherAsync<Error, number>
-const chainable = EitherAsync.of<Error>(
-  Right(0)
-    .map((num) => num * 2)
-    .caseOf({
-      Right: () => Just(5),
-      Left: () => Just(5)
-    })
-    .map((num) => num * 2)
-    .caseOf({
-      Just: (n) => Tuple(n, 2),
-      Nothing: () => Tuple(1, 2)
-    })
-    .map((scnd) => scnd * 2)
-).map(reduce((prev, curr) => prev + curr, 0))
-```
-Both styles can be used together:
-```typescript
-  pipe(
-    Right(0),
-	map(n => n * 2)
-  ).caseOf({
-     _:() => console.log("done!")
-  })
 ```
 
 ## Do* notation
@@ -105,28 +78,6 @@ const result = Right<string, Error>('jason').chain((name) =>
       surname,
       favoriteColor
     }))
-  )
-)
-```
-Point-free version equivalent
-```typescript
-// result :: Either<Error, { name: string, surname: string, favoriteColor: string }>
-const result = pipe(
-  Right<string, Error>('Jason'),
-  chain((name) =>
-    pipe(
-      Right<string, Error>('Santiago'),
-      chain((surname) =>
-        pipe(
-          Left<Error, string>(Error('DB error!')),
-          map((favoriteColor) => ({
-            name: name,
-            surname,
-            favoriteColor
-          }))
-        )
-      )
-    )
   )
 )
 ```
