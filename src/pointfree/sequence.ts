@@ -1,18 +1,6 @@
-import {
-  Either,
-  Just,
-  List,
-  Maybe,
-  NonEmptyArray,
-  NonEmptyList,
-  ofAp,
-  Right
-} from '..'
-import { EitherAsync } from '../EitherAsync'
+import { ofAp } from '..'
 import { ApKind } from './ap'
-import { pipe } from './function-utils'
-import { HKT, ReplaceFirst, Type, URIS, of } from './hkt_tst'
-import { traverse } from './traverse'
+import { HKT, ReplaceFirst, Type, URIS } from './hkt'
 
 export interface SequenceableKind<F extends URIS, A extends any[]>
   extends HKT<F, A> {
@@ -46,17 +34,3 @@ export const sequence = <
   : never => {
   return seq.sequence(of)
 }
-
-// const seqtest = pipe(List(Right(0)), sequence(Either))
-
-// const seqtest2 = pipe(NonEmptyList(Just(0)), sequence(Maybe))
-
-const seqtestNEL = pipe(
-  Right<EitherAsync<never, number>, Error>(EitherAsync.of(1)),
-  sequence(EitherAsync.of)
-)
-
-// const seqtestL = pipe(
-//   Right(1),
-//   traverse(List, (num) => List(1))
-// )

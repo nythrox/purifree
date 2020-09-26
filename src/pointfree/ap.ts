@@ -1,13 +1,12 @@
-import { Right } from '..'
-import { pipe } from './function-utils'
 import {
-  HKT,
   ReplaceFirst,
   ReplaceFirstAndReplaceSecondIfSecondIsNever,
   Type,
   URIS
-} from './hkt_tst'
+} from './hkt'
 import { FunctorKind } from './map'
+
+export type ofAp<URI extends URIS> = <T>(value: T) => ApKind<URI, [T, ...any]>
 
 export interface ApKind<F extends URIS, A extends any[]>
   extends FunctorKind<F, A> {
@@ -24,9 +23,3 @@ export const ap = <Ap extends ApKind<any, any>, B = any>(
 ) => (fa: Ap): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], B>> => {
   return fa.ap(other)
 }
-
-const sla2 = pipe(
-  Right(2),
-  ap(Right((num) => num * 2)),
-  ap(Right((num) => num * 10))
-)

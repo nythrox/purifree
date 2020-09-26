@@ -1,8 +1,4 @@
-import { Right } from '../Either'
-import { Just } from '../Maybe'
-import { MaybeAsync } from '../MaybeAsync'
-import { pipe } from './function-utils'
-import { HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
+import { HKT, URIS } from './hkt'
 
 export interface Extractable<F extends URIS, A extends any[]>
   extends HKT<F, A> {
@@ -14,6 +10,3 @@ export const extract = <ExtractM extends Extractable<any, any>>() => (
 ): ExtractM['_A'][0] | ExtractM['_A'][1] => {
   return fa.extract()
 }
-
-const orDefaultTest = pipe(Right(0), extract())
-const orDefaultTest2 = pipe(Just('hello'), extract())

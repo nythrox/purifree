@@ -1,11 +1,11 @@
 {
-  "name": "purify-ts",
-  "version": "0.16.0-beta.5",
-  "description": "Functional programming standard library for TypeScript ",
+  "name": "purifree-ts",
+  "version": "0.16.0-beta.8",
+  "description": "Point-free Functional programming library for TypeScript",
   "main": "index.js",
   "types": "index.d.ts",
-  "repository": "https://github.com/gigobyte/purify.git",
-  "author": "gigobyte <gigobest2@gmail.com>",
+  "repository": "https://github.com/nythrox/purifree.git",
+  "author": "nythrox <jasonsantiagobutler@gmail.com>",
   "license": "MIT",
   "sideEffects": false,
   "scripts": {

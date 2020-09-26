@@ -1,10 +1,6 @@
-import { NoInfer } from 'Function/_api'
-import { A } from 'ts-toolbelt'
-import { Either, Just, List, Maybe, NonEmptyList, Right } from '..'
-import { ofAp } from '../NonEmptyList'
-import { ApKind } from './ap'
+import { List } from '../List'
+import { ApKind, ofAp } from './ap'
 import { IsUnion } from './do'
-import { pipe } from './function-utils'
 import {
   HKT,
   ReplaceFirst,
@@ -12,7 +8,7 @@ import {
   URIS,
   of,
   ReplaceFirstAndReplaceSecondIfSecondIsNever
-} from './hkt_tst'
+} from './hkt'
 // type test<T extends ApKind<'Either', any>[]> = T
 // type smh = test<[Either<never, number>]>
 export const sequenceT = <Of extends ofAp<any>>(of: Of) => <
@@ -57,11 +53,3 @@ export const sequenceTFlex = <Of extends ofAp<any>>(of: Of) => <
 > => {
   return List(t as T).sequence(of)
 }
-
-// const resErr = sequenceT(Either.of)(
-//   // Right<string, string>('hello'),
-//   Right<number, Error>(2)
-// )
-
-// sequenceTTest :: Either<never, [number, string, boolean]>
-// const sequenceTTest = sequenceT(Either.of)(Right(2), Right('name'), Right(true))

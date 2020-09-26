@@ -1,7 +1,5 @@
-import { Right } from '../Either'
 import { Maybe } from '../Maybe'
-import { pipe } from './function-utils'
-import { HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
+import { HKT, URIS } from './hkt'
 
 export interface ToMaybeable<F extends URIS, A extends any[]>
   extends HKT<F, A> {
@@ -13,8 +11,3 @@ export const toMaybe = <ToMaybeM extends ToMaybeable<any, any>>() => (
 ): Maybe<ToMaybeM['_A'][0]> => {
   return fa.toMaybe()
 }
-
-const toMaybeTest1 = pipe(
-  Right(0),
-  toMaybe()
-)

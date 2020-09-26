@@ -1,8 +1,6 @@
 import { Either, Just } from '..'
-import { Right } from '../Either'
-import { Maybe } from '../Maybe'
-import { pipe } from './function-utils'
-import { HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
+import { pipe } from '../utils/function-utils'
+import { HKT, URIS } from './hkt'
 
 export interface ToEitherable<F extends URIS, A extends any[]>
   extends HKT<F, A> {

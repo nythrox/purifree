@@ -1,4 +1,4 @@
-import { HKT, URIS } from './hkt_tst'
+import { HKT, URIS } from './hkt'
 
 export interface ReduceableKind<F extends URIS, A extends any[]>
   extends HKT<F, A> {

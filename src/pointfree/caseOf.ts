@@ -1,3 +1,37 @@
+
+import { Either, EitherPatterns, Maybe, MaybePatterns } from '..'
+
+interface CaseOfable {
+  caseOf<T>(pattern: any): T
+}
+export type CaseOf = {
+  <
+    M extends CaseOfable,
+    P extends getPatternsOfADT<M>,
+    T2 = getReturn_T_ofPattern<P>
+  >(
+    p: P
+  ): (m: M) => T2
+}
+export type Match = CaseOf
+export const caseOf: CaseOf = (p) => (m) => m.caseOf(p)
+export const match: Match = (p) => (m) => m.caseOf(p)
+type getPatternsOfADT<M> = M extends Either<infer L, infer R>
+  ? EitherPatterns<L, R, any>
+  : M extends Maybe<infer T>
+  ? MaybePatterns<T, any>
+  : never
+type getReturn_T_ofPattern<P> = P extends
+  | EitherPatterns<any, any, infer R>
+  | EitherPatterns<any, never, infer R>
+  | EitherPatterns<never, any, infer R>
+  ? R
+  : P extends MaybePatterns<any, infer R> | MaybePatterns<never, infer R>
+  ? R
+  : never
+
+
+  
 // import { Just, Maybe, MaybePatterns, Nothing } from '../Maybe'
 // import { Either, EitherPatterns, Left, Right } from '../Either'
 // import { EitherAsync } from '../EitherAsync'
@@ -5,8 +39,6 @@
 // import { MaybeAsync } from '../MaybeAsync'
 // import { Tuple } from '../Tuple'
 // import { NonEmptyList } from '../NonEmptyList'
-
-import { Either, EitherPatterns, Maybe, MaybePatterns } from '..'
 
 // // Try one - Doesnt work: Overload will always choose the first function
 // // interface Map {
@@ -99,35 +131,6 @@ import { Either, EitherPatterns, Maybe, MaybePatterns } from '..'
 //     chainer: (val: T) => R
 //   ): (monad: M) => change_1T_ofADT<M, T2>
 // }
-interface CaseOfable {
-  caseOf<T>(pattern: any): T
-}
-export type CaseOf = {
-  <
-    M extends CaseOfable,
-    P extends getPatternsOfADT<M>,
-    T2 = getReturn_T_ofPattern<P>
-  >(
-    p: P
-  ): (m: M) => T2
-}
-export type Match = CaseOf
-export const caseOf: CaseOf = (p) => (m) => m.caseOf(p)
-export const match: Match = (p) => (m) => m.caseOf(p)
-type getPatternsOfADT<M> = M extends Either<infer L, infer R>
-  ? EitherPatterns<L, R, any>
-  : M extends Maybe<infer T>
-  ? MaybePatterns<T, any>
-  : never
-type getReturn_T_ofPattern<P> = P extends
-  | EitherPatterns<any, any, infer R>
-  | EitherPatterns<any, never, infer R>
-  | EitherPatterns<never, any, infer R>
-  ? R
-  : P extends MaybePatterns<any, infer R> | MaybePatterns<never, infer R>
-  ? R
-  : never
-
 // type Ap = {
 //   <
 //     M extends Applicable<any>,

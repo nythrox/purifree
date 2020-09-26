@@ -1,20 +1,7 @@
-import { Drop } from 'List/Drop'
-import { ListImpl } from '.'
-import { Either, Right } from './Either'
-import { List } from './List'
+import { ListImpl } from './List'
 import { Maybe, Just, Nothing } from './Maybe'
-import { ApKind } from './pointfree/ap'
-import { flow } from './pointfree/function-utils'
-import {
-  of,
-  HKT,
-  ReplaceFirst,
-  Type,
-  URIS,
-  HKTFrom,
-  TypeFromHKT
-} from './pointfree/hkt_tst'
-import { SequenceableKind } from './pointfree/sequence'
+import { ApKind, ofAp } from './pointfree/ap'
+import { ReplaceFirst, Type, URIS } from './pointfree/hkt'
 import { Tuple } from './Tuple'
 export type NonEmptyArray<T> = T[] & { 0: T }
 
@@ -56,12 +43,11 @@ export interface NonEmptyList<T> extends NonEmptyArray<T> {
   'fantasy-land/chain': this['chain']
   'fantasy-land/ap': this['ap']
 }
-export type ofAp<URI extends URIS> = <T>(value: T) => ApKind<URI, [T, ...any]>
 export const concat = <T>(arr: Array<T>) => (arr2: Array<T>) => arr.concat(arr2)
 export const NON_EMPTY_LIST_URI = 'NonEmptyList'
 export type NON_EMPTY_LIST_URI = typeof NON_EMPTY_LIST_URI
 
-declare module './pointfree/hkt_tst' {
+declare module './pointfree/hkt' {
   export interface URI2HKT<Types extends any[]> {
     [NON_EMPTY_LIST_URI]: NonEmptyList<Types[0]>
   }
@@ -120,17 +106,3 @@ export const NonEmptyList: NonEmptyListTypeRef = Object.assign(
     tail: <T>(list: NonEmptyArray<T>): T[] => list.slice(1)
   }
 )
-
-// const vv = NonEmptyList([1]).chain(() => NonEmptyList(['hi']))
-// const slaaa = NonEmptyList(1, 2, 3, 4, 5)
-// const hoi = NonEmptyList(List(List([1, 2, 3, 4, 5])))
-// const slaa2 = NonEmptyList('hola')
-// const slaa3 = NonEmptyList(['hola'], ['holo'])
-// const slaa5 = NonEmptyList(['hoo'])
-// const slaa6 = NonEmptyList(NonEmptyList(1, 2, 3, 4))
-// const list = NonEmptyList(Right(0))
-// const v = list.sequence(Either.of)
-
-// const test = NonEmptyList(1, 2, 3).traverse(Either.of, (num) => Right(num))
-
-// const test2 = NonEmptyList(1, 2, 3).traverse(Maybe.of, (num) => Just(num))

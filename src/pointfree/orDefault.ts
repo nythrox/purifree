@@ -1,8 +1,4 @@
-import { Right } from '../Either'
-import { Just } from '../Maybe'
-import { MaybeAsync } from '../MaybeAsync'
-import { pipe } from './function-utils'
-import { HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
+import { HKT, URIS } from './hkt'
 
 export interface OrDefaultable<F extends URIS, A extends any[]>
   extends HKT<F, A> {
@@ -14,11 +10,3 @@ export const orDefault = <OrDefaultM extends OrDefaultable<any, any>>(
 ) => (fa: OrDefaultM): OrDefaultM['_A'][0] => {
   return fa.orDefault(defaultValue)
 }
-
-const orDefaultTest = pipe(Right(0), orDefault(10))
-const orDefaultTest2 = pipe(
-  Just('hello'),
-  orDefault('hi')
-)
-
-

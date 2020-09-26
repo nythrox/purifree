@@ -1,8 +1,4 @@
-import { Right } from '../Either'
-import { Just } from '../Maybe'
-import { MaybeAsync } from '../MaybeAsync'
-import { pipe } from './function-utils'
-import { HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
+import { HKT, URIS } from './hkt'
 
 export interface OrDefaultLazyable<F extends URIS, A extends any[]>
   extends HKT<F, A> {
@@ -14,12 +10,3 @@ export const orDefaultLazy = <OrDefaultM extends OrDefaultLazyable<any, any>>(
 ) => (fa: OrDefaultM): OrDefaultM['_A'][0] => {
   return fa.orDefaultLazy(getDefaultValue)
 }
-
-const orDefaultLazyTest = pipe(
-  Right(0),
-  orDefaultLazy(() => 10)
-)
-const orDefaultLazyTest2 = pipe(
-  Just('hello'),
-  orDefaultLazy(() => 'hi')
-)

@@ -1,6 +1,4 @@
-import { Right } from '..'
-import { pipe } from './function-utils'
-import { HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
+import { HKT, ReplaceFirst, Type, URIS } from './hkt'
 
 export interface Extendable<F extends URIS, A extends any[]> extends HKT<F, A> {
   readonly extend: <B>(f: (a: Type<F, A>) => B) => Type<F, ReplaceFirst<A, B>>
@@ -13,8 +11,3 @@ export const extend = <ExtendableM extends Extendable<any, any>, B = any>(
 ): Type<ExtendableM['_URI'], ReplaceFirst<ExtendableM['_A'], B>> => {
   return fa.extend(f)
 }
-
-// const test = pipe(
-//   Right(5),
-//   extend((e) => e.inspect())
-// )

@@ -1,6 +1,4 @@
-import { Right } from '..'
-import { pipe } from './function-utils'
-import { HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
+import { HKT, ReplaceFirst, Type, URIS } from './hkt'
 
 export interface FunctorKind<F extends URIS, A extends any[]>
   extends HKT<F, A> {

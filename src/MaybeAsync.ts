@@ -1,6 +1,6 @@
 import { Maybe, Just, Nothing } from './Maybe'
 import { EitherAsync } from './EitherAsync'
-import { Type } from './pointfree/hkt_tst'
+import { Type } from './pointfree/hkt'
 import { ofSymbol } from './pointfree/do'
 
 export interface MaybeAsyncTypeRef {
@@ -19,7 +19,7 @@ export interface MaybeAsyncTypeRef {
 export const MAYBE_ASYNC_URI = 'MaybeAsync'
 export type MAYBE_ASYNC_URI = typeof MAYBE_ASYNC_URI
 
-declare module './pointfree/hkt_tst' {
+declare module './pointfree/hkt' {
   export interface URI2HKT<Types extends any[]> {
     [MAYBE_ASYNC_URI]: MaybeAsync<Types[0]>
   }

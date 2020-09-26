@@ -1,6 +1,4 @@
-import { Either, Right } from '..'
-import { pipe } from './function-utils'
-import { HKT, ReplaceFirst, Type, URIS } from './hkt_tst'
+import { HKT, ReplaceFirst, Type, URIS } from './hkt'
 
 export interface Joinable<F extends URIS, A extends any[]> extends HKT<F, A> {
   // this is Either<L,Either<any,any>>
@@ -26,13 +24,3 @@ export const join = <
   : never => {
   return seq.join()
 }
-
-
-const join1 = pipe(
-  Right<Either<Error, string>, Error>(Right<string, Error>('F20')),
-  join()
-)
-
-const joinChain = Right<Either<Error, string>, Error>(
-  Right<string, Error>('F20')
-).join()

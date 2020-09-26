@@ -1,12 +1,7 @@
 import { Either, Left, Right } from './Either'
-import { List } from './List'
-import { NonEmptyList, ofAp } from './NonEmptyList'
-import { ApKind } from './pointfree/ap'
+import { ApKind, ofAp } from './pointfree/ap'
 import { ofSymbol } from './pointfree/do'
-import { pipe } from './pointfree/function-utils'
-import { ReplaceFirst, Type, URIS } from './pointfree/hkt_tst'
-import { sequence } from './pointfree/sequence'
-import { traverse } from './pointfree/traverse'
+import { ReplaceFirst, Type, URIS } from './pointfree/hkt'
 
 export type MaybePatterns<T, U> =
   | { Just: (value: T) => U; Nothing: () => U }
@@ -19,7 +14,7 @@ export const MAYBE_URI = 'Maybe'
 
 export type MAYBE_URI = typeof MAYBE_URI
 
-declare module './pointfree/hkt_tst' {
+declare module './pointfree/hkt' {
   export interface URI2HKT<Types extends any[]> {
     [MAYBE_URI]: Maybe<Types[0]>
   }
@@ -580,8 +575,3 @@ const just = <T>(value: T): Maybe<T> => new Just(value)
 const nothing = new Nothing()
 
 export { just as Just, nothing as Nothing }
-
-// const v = just(5)
-// const sla = v.traverse(Either.of, (num) => Right(num.toString()))
-// const res = sla.sequence(Maybe.of)
-// const oi = pipe(res, sequence(Either.of))

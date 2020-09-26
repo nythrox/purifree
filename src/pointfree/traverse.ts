@@ -1,9 +1,6 @@
 import { NoInfer } from 'Function/_api'
-import { Either, ofAp, Right } from '..'
-import { NonEmptyList } from '../NonEmptyList'
-import { ApKind } from './ap'
-import { pipe } from './function-utils'
-import { HKT, ReplaceFirst, Type, URIS, of } from './hkt_tst'
+import { ApKind, ofAp } from './ap'
+import { HKT, ReplaceFirst, Type, URIS } from './hkt'
 
 export interface TraversableKind<F extends URIS, A extends any[]>
   extends HKT<F, A> {
@@ -35,8 +32,3 @@ export const traverse = <
 > => {
   return traversable.traverse(of, f)
 }
-
-// const test = pipe(
-//   NonEmptyList(1, 2, 3, 4, 5),
-//   traverse(Either.of, (n) => Right(n))
-// )
