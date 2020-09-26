@@ -169,3 +169,6 @@ const getNameTest = kleisli(
 const result = getNameTest('jason')
 
 ```
+
+### Codesandbox
+You can try it out <a href="https://codesandbox.io/s/purifree-template-hcyzs"> in the browser.  </a>
