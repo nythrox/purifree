@@ -25,27 +25,21 @@ Purifree is 100% compatible with purify, and can be used interchangeably.
 ## Point-free style 
 Point-free functions can be used with any ADTs (without needing module-specific imports), and can also be used together with the chainable (<a href="https://github.com/gigobyte/purify">purify</a>) API. 
 ```typescript
-// pointfree :: EitherAsync<Error, number>
+// pointfree :: Maybe<string>
 const pointfree = pipe(
-// Either<never, number>
-  Right(0),
-  map(num => num * 2),
+  Just('name'),
+  map((name) => name.toUpperCase()),
+  filter((name) => name.length > 5),
+  chain((name) => (Math.random() > 0.5 ? Just(name + ' lucky :)') : Nothing))
+)
+// matchTest :: string
+const matchTest = pipe(
+  Right<number, string>(100),
+  chain((num) => (num > 50 ? Right(num) : Left(`bad number: ${num}`))),
   match({
-    Right: () => Just(5),
-    Left: () => Just(5)
-  }),
-  // Maybe<number>
-  map((num) => num * 2),
-  match({
-    Just: (n) => Tuple(n, 2),
-    Nothing: () => Tuple(1, 2)
-  }),
-  // Tuple<number, number>
-  map((scnd) => scnd * 2),
-  (tuple) => EitherAsync.of<Error>(tuple),
-  // EitherAsync<Error, Tuple<number, number>>
-  map(reduce((prev, curr) => prev + curr, 0))
-  // EitherAsync<Error, number>
+    Right: (e) => 'Great number!' + e,
+    Left: (e) => `OK number. | msg: (${e})`
+  })
 )
 ```
 
