@@ -1,3 +1,4 @@
+import { NoInfer } from 'Function/_api'
 import {
   HKT,
   ReplaceFirst,
@@ -32,7 +33,7 @@ export const chain = <
 >(
   f: (
     a: Monad['_A'][0]
-  ) => HKT<URI extends infer U ? U : never, ReplaceFirst<Generics, B>> // delay the infer U, so it can get the monads URI
+  ) => HKT<NoInfer<URI>, ReplaceFirst<Generics, B>> // delay the infer U, so it can get the monads URI
 ) => (fa: Monad): Type<URI, ReplaceFirst<Generics, B>> => {
   return fa.chain(f)
 }
@@ -53,18 +54,9 @@ export const chainFlex = <
   B = any,
   C = any
 >(
-  f: (a: Monad['_A'][0]) => Chainable<URI, [B, C, ...any]>
+  f: (a: Monad['_A'][0]) => HKT<NoInfer<URI>, [B, C, ...any]>
 ) => (
   fa: Monad
 ): Type<URI, ReplaceFirstAndSecond<Monad['_A'], B, Monad['_A'][1] | C>> => {
   return fa.chain(f)
-}
-
-export interface ChainableNonHKT<T> {
-  readonly chain: <T2>(
-    f: (
-      value: T
-    ) => // | Type<F, ReplaceFirst<A, B>>
-    ChainableNonHKT<T2>
-  ) => ChainableNonHKT<T2>
 }
