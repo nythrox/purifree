@@ -1,6 +1,6 @@
+import { pipe } from '..'
 import { Either, Right } from '../Either'
 import { List } from '../List'
-import { pipe } from './function-utils'
 import { sequence } from './sequence'
 import { sequenceS } from './sequenceS'
 import { sequenceT } from './sequenceT'
