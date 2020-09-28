@@ -11,79 +11,49 @@
 
 # Purifree
 Purifree is a fork from <a href="https://github.com/gigobyte/purify">Purify</a> that allows you to program in a point-free style, and adds a few new capabilities.
-# What is purify?
-
+# What is Purify?
 Purify is a library for functional programming in TypeScript.
 Its purpose is to allow developers to use popular patterns and abstractions that are available in most functional languages.
 Learn more about Purify <a href="https://github.com/gigobyte/purify">here</a>
-
-# Purify compatability
+# How to start?
+Purifree is available as a package on npm. You can install it with a package manager of your choice:
+```
+$ npm install purifree-ts
+```
+# Purifree compatability
 Purifree is 100% compatible with purify, and can be used interchangeably.
-## Point-free style
-Point-free style:
+## Point-free style 
+Point-free functions can be used with any ADTs (without needing module-specific imports), and can also be used together with the chainable (<a href="https://github.com/gigobyte/purify">purify</a>) API. 
 ```typescript
-// pointfree :: EitherAsync<Error, number>
+// pointfree: Maybe<string>
 const pointfree = pipe(
-  // Either<never, number>
-  Right(0),
-  map(num => num * 2),
-  match({
-    Right: () => Just(5),
-    Left: () => Just(5)
-  }),
-  // Maybe<number>
-  map((num) => num * 2),
-  match({
-    Just: (n) => Tuple(n, 2),
-    Nothing: () => Tuple(1, 2)
-  }),
-  // Tuple<number, number>
-  map((scnd) => scnd * 2),
-  (tuple) => EitherAsync.of<Error>(tuple),
-  // EitherAsync<Error, Tuple<number, number>>
-  map(reduce((prev, curr) => prev + curr, 0))
-  // EitherAsync<Error, number>
+  Just('name'),
+  map((name) => name.toUpperCase()),
+  filter((name) => name.length > 5),
+  chain((name) => (Math.random() > 0.5 ? Just(name + ' lucky :)') : Nothing))
 )
-```
-Chainable style:
-```typescript
-// chainable :: EitherAsync<Error, number>
-const chainable = EitherAsync.of<Error>(
-  Right(0)
-    .map((num) => num * 2)
-    .caseOf({
-      Right: () => Just(5),
-      Left: () => Just(5)
-    })
-    .map((num) => num * 2)
-    .caseOf({
-      Just: (n) => Tuple(n, 2),
-      Nothing: () => Tuple(1, 2)
-    })
-    .map((scnd) => scnd * 2)
-).map(reduce((prev, curr) => prev + curr, 0))
-```
-Both styles can be used together:
-```typescript
-  pipe(
-    Right(0),
-	map(n => n * 2)
-  ).caseOf({
-     _:() => console.log("done!")
+// matchTest: string
+const matchTest = pipe(
+  Right<number, string>(100),
+  chain((num) => (num > 50 ? Right(num) : Left(`bad number: ${num}`))),
+  match({
+    Right: (e) => 'Great number!' + e,
+    Left: (e) => `OK number. | msg: (${e})`
   })
+)
 ```
 
 ## Do* notation
 This fork features the generator do* notation for all data structures except for arrays.
 The do notation lets you easily chain operations without having to nest your code.
 ```typescript
-// result :: Either<Error, { name: string, surname: string, favoriteColor: string }>
+// result: Either<Error, { name: string, surname: string, favoriteColor: string }>
 const result = Do(function* () {
-  // name :: string
+  // name: string
   const name = yield* Right("Jason")
-  // surname :: string
+  // surname: string
   const surname = yield* Right("Santiago")
-  // favoriteColor :: string
+  // favoriteColor: string
   const favoriteColor = yield* Left<Error, string>(Error("DB error!"))
   return {
     name,
@@ -94,7 +64,7 @@ const result = Do(function* () {
 ```
 Chain version equivalent: 
 ```typescript
-// result :: Either<Error, { name: string, surname: string, favoriteColor: string }>
+// result: Either<Error, { name: string, surname: string, favoriteColor: string }>
 const result = Right<string, Error>('jason').chain((name) =>
   Right<string, Error>('Santiago').chain((surname) =>
     Left<Error, string>(Error('DB error!')).map((favoriteColor) => ({
@@ -105,48 +75,26 @@ const result = Right<string, Error>('jason').chain((name) =>
   )
 )
 ```
-Point-free version equivalent
-```typescript
-// result :: Either<Error, { name: string, surname: string, favoriteColor: string }>
-const result = pipe(
-  Right<string, Error>('Jason'),
-  chain((name) =>
-    pipe(
-      Right<string, Error>('Santiago'),
-      chain((surname) =>
-        pipe(
-          Left<Error, string>(Error('DB error!')),
-          map((favoriteColor) => ({
-            name: name,
-            surname,
-            favoriteColor
-          }))
-        )
-      )
-    )
-  )
-)
-```
 ### Traverse, Sequence, SequenceS, SequenceT
 ```typescript
 // Gets an Either<never, number>, maps it to an Either<never, NonEmptyList<number>>, and inverts it into a NonEmptyList<Either<never, number>>
-// traverseTest :: NonEmptyList<Either<never, number>>
+// traverseTest: NonEmptyList<Either<never, number>>
 const traverseTest = pipe(
   Right(1),
   traverse(NonEmptyList, (num) => NonEmptyList(num))
 )
 
 // Gets an Either<never, NonEmptyList<number>> and inverts it into a NonEmptyList<Either<never, number>>
-// sequenceTest :: NonEmptyList<Either<never, number>>
+// sequenceTest: NonEmptyList<Either<never, number>>
 const sequenceTest = pipe(
   Right(NonEmptyList(1)),
   sequence(NonEmptyList)
 )
 
-// sequenceTTest :: Either<never, [number, string, boolean]>
+// sequenceTTest: Either<never, [number, string, boolean]>
 const sequenceTTest = sequenceT(Either.of)(Right(2), Right('name'), Right(true))
 
-// sequenceStrutureTest :: Either<string, { name: string, age: number }>
+// sequenceStrutureTest: Either<string, { name: string, age: number }>
 const sequenceStrutureTest = sequenceS(Either.of)({
   name: Right<string, string>('name'),
   age: Right<number, string>(100)
@@ -156,13 +104,28 @@ const sequenceStrutureTest = sequenceS(Either.of)({
 ### Kleisli flow
 Kleisli flow can be used as an easy way to combine functions that return monads without using chain.
 ```typescript
-// getNameTest :: ( name?: string ) => Maybe<string>
+// getNameTest: ( name?: string ) => Maybe<string>
 const getNameTest = kleisli(
   (name?: string) => name ? Just(name) : Nothing,
   (name) => Just(name.toUpperCase()),
   (uppercasedName) => uppercasedName.length > 3 ? Just(uppercasedName) : Nothing
 )
-// result :: Maybe<string>
+// result: Maybe<string>
 const result = getNameTest('jason')
-
 ```
+### Lifting
+You can use the liftN family of functions to lift a function that takes normal values into a function that takes and returns elevated values:
+```typescript
+// add takes normal values
+const add = (num1: number, num2: number) => num1 + num2
+// addL takes elevated values, and returns an elevated value
+// (example return type) addL = (a: Applicative<A>) => (b: Applicative<B>) => Applicative<R> 
+const addL = lift2(add)
+// add5Option (b: Either<never, number>) => Either<never, number>
+const add5Option = addL(Right(5))
+// result: Either<never, number> = Right(15)
+const result = add5Option(Right(10))
+```
+
+### Codesandbox
+You can try it out <a href="https://codesandbox.io/s/purifree-template-hcyzs"> in the browser.  </a>
