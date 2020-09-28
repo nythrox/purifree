@@ -120,7 +120,7 @@ You can use the liftN family of functions to lift a function that takes normal v
 // add takes normal values
 const add = (num1: number, num2: number) => num1 + num2
 // addL takes elevated values, and returns an elevated value
-// addL: Lifted<(num1: number, num2: number) => number> 
+// addL: Lifted<(a: Ap<number>, b: Ap<number>) => Ap<number>> 
 const addL = lift2(add)
 // add5Option (b: Either<never, number>) => Either<never, number>
 const add5Option = addL(Right(5))
