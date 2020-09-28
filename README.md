@@ -114,12 +114,13 @@ const getNameTest = kleisli(
 const result = getNameTest('jason')
 ```
 ### Lifting
-You can use the liftN family of functions to lift a function that takes normal values into a function that takes and returns elevated values:
+You can use the liftN family of functions to lift a function that takes normal values into a function that takes and returns elevated values.
+WARNING: If you try lifting a function that uses generics, it will probably loose its type due to typescript.
 ```typescript
 // add takes normal values
 const add = (num1: number, num2: number) => num1 + num2
 // addL takes elevated values, and returns an elevated value
-// (example return type) addL = (a: Applicative<A>) => (b: Applicative<B>) => Applicative<R> 
+// addL: Lifted<(num1: number, num2: number) => number> 
 const addL = lift2(add)
 // add5Option (b: Either<never, number>) => Either<never, number>
 const add5Option = addL(Right(5))
