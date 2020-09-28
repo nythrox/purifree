@@ -1,4 +1,4 @@
-import { L } from "ts-toolbelt"
+import { L } from 'ts-toolbelt'
 export type URIS = keyof URI2HKT<any>
 export interface HKT<F extends URIS, A extends any[]> {
   _URI: F
@@ -17,7 +17,11 @@ export type HKTFrom<
   oldA extends any[] = other['_A']
 > = HKT<uri, Replace<oldA, A>>
 
-export type Replace<oldA extends any[], newA extends any[]> = [
+export type Replace<oldA extends any[], newA extends any[]> = 
+// [
+//   ...L.Merge<newA, oldA>
+// ]
+[
   ...newA,
   ...L.Drop<oldA, L.Length<newA, 's'>, '->'>
 ]
