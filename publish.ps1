@@ -1,3 +1,5 @@
+# start powershell
+# powershell -executionpolicy bypass -File .\publish.ps1
 $files = @("package.json", "LICENSE", "README.md", "yarn.lock")
 
 Invoke-Expression "npm run build"

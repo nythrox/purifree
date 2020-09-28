@@ -1,3 +1,4 @@
+// The reason for having the Lift<F> type is so the return type looks better
 export * from './lift'
 export * from './lift2'
 export * from './lift2C'
