@@ -15,7 +15,6 @@ export interface MonadKind<F extends URIS, A extends any[]>
     f: (a: A[0]) => Type<F, ReplaceFirst<A, B>>
   ) => Type<F, ReplaceFirst<A, B>>
 }
-
 export interface Chainable<F extends URIS, A extends any[]> extends HKT<F, A> {
   readonly chain: <B>(
     f: (
@@ -31,9 +30,7 @@ export const chain = <
   Generics extends any[] = Monad['_A'],
   B = any
 >(
-  f: (
-    a: Monad['_A'][0]
-  ) => HKT<NoInfer<URI>, ReplaceFirst<Generics, B>> // delay the infer U, so it can get the monads URI
+  f: (a: Monad['_A'][0]) => HKT<NoInfer<URI>, ReplaceFirst<Generics, B>> // delay the infer U, so it can get the monads URI
 ) => (fa: Monad): Type<URI, ReplaceFirst<Generics, B>> => {
   return fa.chain(f)
 }

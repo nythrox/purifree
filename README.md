@@ -101,8 +101,18 @@ const sequenceStrutureTest = sequenceS(Either.of)({
 })
 
 ```
-### Kleisli flow
-Kleisli flow can be used as an easy way to combine functions that return monads without using chain.
+### Kleisli
+The function pipeK can be used as an easy way to combine functions that return monads without using chain.
+If you need to use a long list of chains, you can use the pipeK function to compose the functions instead of passing each one into chain.
+Instead of: 
+```typescript
+const getNameTest = pipe(
+  chain((name?: string) => name ? Just(name) : Nothing),
+  chain((name) => Just(name.toUpperCase())),
+  chain((uppercasedName) => uppercasedName.length > 3 ? Just(uppercasedName) : Nothing)
+)
+```
+Use:
 ```typescript
 // getNameTest: ( name?: string ) => Maybe<string>
 const getNameTest = kleisli(
