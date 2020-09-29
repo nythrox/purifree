@@ -50,9 +50,9 @@ The do notation lets you easily chain operations without having to nest your cod
 // result: Either<Error, { name: string, surname: string, favoriteColor: string }>
 const result = Do(function* () {
   // name: string
-  const name = yield* Right("Jason")
+  const name = yield* Right("name")
   // surname: string
-  const surname = yield* Right("Santiago")
+  const surname = yield* Right("surname")
   // favoriteColor: string
   const favoriteColor = yield* Left<Error, string>(Error("DB error!"))
   return {
@@ -65,8 +65,8 @@ const result = Do(function* () {
 Chain version equivalent: 
 ```typescript
 // result: Either<Error, { name: string, surname: string, favoriteColor: string }>
-const result = Right<string, Error>('jason').chain((name) =>
-  Right<string, Error>('Santiago').chain((surname) =>
+const result = Right<string, Error>('name').chain((name) =>
+  Right<string, Error>('surname').chain((surname) =>
     Left<Error, string>(Error('DB error!')).map((favoriteColor) => ({
       name,
       surname,
@@ -111,7 +111,7 @@ const getNameTest = kleisli(
   (uppercasedName) => uppercasedName.length > 3 ? Just(uppercasedName) : Nothing
 )
 // result: Maybe<string>
-const result = getNameTest('jason')
+const result = getNameTest('name')
 ```
 ### Lifting
 You can use the liftN family of functions to lift a function that takes normal values into a function that takes and returns elevated values.
