@@ -50,9 +50,9 @@ The do notation lets you easily chain operations without having to nest your cod
 // result: Either<Error, { name: string, surname: string, favoriteColor: string }>
 const result = Do(function* () {
   // name: string
-  const name = yield* Right("Jason")
+  const name = yield* Right("name")
   // surname: string
-  const surname = yield* Right("Santiago")
+  const surname = yield* Right("surname")
   // favoriteColor: string
   const favoriteColor = yield* Left<Error, string>(Error("DB error!"))
   return {
@@ -65,8 +65,8 @@ const result = Do(function* () {
 Chain version equivalent: 
 ```typescript
 // result: Either<Error, { name: string, surname: string, favoriteColor: string }>
-const result = Right<string, Error>('jason').chain((name) =>
-  Right<string, Error>('Santiago').chain((surname) =>
+const result = Right<string, Error>('name').chain((name) =>
+  Right<string, Error>('surname').chain((surname) =>
     Left<Error, string>(Error('DB error!')).map((favoriteColor) => ({
       name,
       surname,
@@ -121,15 +121,16 @@ const getNameTest = kleisli(
   (uppercasedName) => uppercasedName.length > 3 ? Just(uppercasedName) : Nothing
 )
 // result: Maybe<string>
-const result = getNameTest('jason')
+const result = getNameTest('name')
 ```
 ### Lifting
-You can use the liftN family of functions to lift a function that takes normal values into a function that takes and returns elevated values:
+You can use the liftN family of functions to lift a function that takes normal values into a function that takes and returns elevated values.
+*WARNING*: If you try lifting a function that uses generics, it will probably loose its type due to typescript.
 ```typescript
 // add takes normal values
 const add = (num1: number, num2: number) => num1 + num2
 // addL takes elevated values, and returns an elevated value
-// (example return type) addL = (a: Applicative<A>) => (b: Applicative<B>) => Applicative<R> 
+// addL: Lifted<(a: Ap<number>, b: Ap<number>) => Ap<number>> 
 const addL = lift2(add)
 // add5Option (b: Either<never, number>) => Either<never, number>
 const add5Option = addL(Right(5))
