@@ -5,11 +5,9 @@ import { compare } from './Function'
 import { sequenceS } from './pointfree/sequenceS'
 import { sequenceT } from './pointfree/sequenceT'
 import { Either, Right } from './Either'
-import { Left, ListImpl } from '.'
-import { pipe } from './pointfree/function-utils'
 import { traverse } from './pointfree/traverse'
 import { sequence } from './pointfree/sequence'
-import { EitherAsync } from './EitherAsync'
+import { pipe } from '.'
 describe('List', () => {
   test('sequence', () => {
     expect(pipe(List(Right(5)), sequence(Either.of))).toEqual(Right(List(5)))

@@ -1,6 +1,5 @@
-import { Right } from '..'
+import { lift2C, lift4C, Right } from '..'
 import { Left } from '../Either'
-import { liftC, lift2C, lift4C } from './lift'
 describe('lift', () => {
   test('lift2', () => {
     const add = (a: number) => (b: number) => a + b
