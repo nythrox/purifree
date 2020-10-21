@@ -13,7 +13,7 @@ export interface GeneratableKind<F extends URIS, A extends any[]>
   [ofSymbol]: of<F>
 }
 
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I
 ) => void
   ? I
