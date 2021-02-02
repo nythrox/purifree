@@ -24,9 +24,9 @@ export interface Either<L, R> {
   [Symbol.iterator]: () => Iterator<Either<L, R>, R, any>
   [ofSymbol]: EitherTypeRef['of']
   /** Returns true if `this` is `Left`, otherwise it returns false */
-  isLeft(): this is Either<L, never>
+  isLeft(): this is Left<L, never>
   /** Returns true if `this` is `Right`, otherwise it returns false */
-  isRight(): this is Either<never, R>
+  isRight(): this is Right<R, never>
   toJSON(): L | R
   inspect(): string
   toString(): string
@@ -79,7 +79,11 @@ export interface Either<L, R> {
    * */
   either<T>(ifLeft: (value: L) => T, ifRight: (value: R) => T): T
   /** Extracts the value out of `this` */
-  extract(): L | R
+  extract(): this extends Right<R, never>
+    ? R
+    : this extends Left<L, never>
+    ? L
+    : L | R
   /** Returns `Right` if `this` is `Left` and vice versa */
   swap(): Either<R, L>
 
@@ -92,8 +96,17 @@ export interface Either<L, R> {
     this: Either<L, Ap>,
     of: ofAp<Ap['_URI']>
   ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
-  'fantasy-land/traverse': this['traverse']
-  'fantasy-land/sequence': this['sequence']
+  'fantasy-land/traverse'<
+    URI extends URIS,
+    AP extends ApKind<any, any> = ApKind<URI, any>
+  >(
+    of: ofAp<URI>,
+    f: (a: R) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>>
+  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
+    this: Either<L, Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
   'fantasy-land/bimap'<L2, R2>(
     f: (value: L) => L2,
     g: (value: R) => R2
@@ -332,8 +345,12 @@ class Right<R, L = never> implements Either<L, R> {
     return ifRight(this.__value)
   }
 
-  extract(): L | R {
-    return this.__value
+  extract(): this extends Right<R, never>
+    ? R
+    : this extends Left<L, never>
+    ? L
+    : L | R {
+    return this.__value as any
   }
 
   swap(): Either<R, L> {
@@ -536,8 +553,12 @@ class Left<L, R = never> implements Either<L, R> {
     return ifLeft(this.__value)
   }
 
-  extract(): L | R {
-    return this.__value
+  extract(): this extends Right<R, never>
+    ? R
+    : this extends Left<L, never>
+    ? L
+    : L | R {
+    return this.__value as any 
   }
 
   swap(): Either<R, L> {
@@ -604,4 +625,3 @@ export const isLeft: IsLeft = <L, R>(
 export const isRight: IsRight = <L, R>(
   either: Either<L, R>
 ): either is Either<never, R> => either.isRight()
-
