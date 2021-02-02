@@ -1,4 +1,3 @@
-import { Right } from '../..'
 import { ApKind } from '../ap'
 import { TypeFromHKT } from '../hkt'
 import {
@@ -10,18 +9,17 @@ import {
   GetReturn
 } from './liftBeautifiers'
 
-type Lifted<F extends (a: any) => (b: any) => (c: any) => (d: any) => any> = <
-  HKT1 extends ApKind<any, [GetA<F>, ...any]>
->(
-  a: HKT1
-) => (
-  b: TypeFromHKT<HKT1, [GetBCurried<F>]>
-) => (
-  c: TypeFromHKT<HKT1, [GetCCurried<F>]>
-) => (
-  d: TypeFromHKT<HKT1, [GetDCurried<F>]>
-) => TypeFromHKT<HKT1, [GetReturn<ReturnType<ReturnType<ReturnType<F>>>>]>
-
+interface Lifted<
+  F extends (a: any) => (b: any) => (c: any) => (d: any) => any
+> {
+  <HKT1 extends ApKind<any, [GetA<F>, ...any]>>(a: HKT1): (
+    b: TypeFromHKT<HKT1, [GetBCurried<F>]>
+  ) => (
+    c: TypeFromHKT<HKT1, [GetCCurried<F>]>
+  ) => (
+    d: TypeFromHKT<HKT1, [GetDCurried<F>]>
+  ) => TypeFromHKT<HKT1, [GetReturn<ReturnType<ReturnType<ReturnType<F>>>>]>
+}
 export const lift4C = <
   F extends (a: any) => (b: any) => (c: any) => (d: any) => any,
   A = Parameters<F>[0],
