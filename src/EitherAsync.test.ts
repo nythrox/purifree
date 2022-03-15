@@ -346,4 +346,17 @@ describe('EitherAsync', () => {
 
     expect(calledFn).toHaveBeenCalledTimes(1)
   })
+  test('finally', async () => {
+    let a = 0
+    await EitherAsync.liftEither(Left('Error')).finally(() => {
+      a = 5
+    })
+    expect(a).toEqual(5)
+
+    let b = 0
+    await EitherAsync.liftEither(Right(5)).finally(() => {
+      b = 5
+    })
+    expect(b).toEqual(5)
+  })
 })
