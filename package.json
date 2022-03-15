@@ -10,9 +10,11 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc && tsc -p tsconfig.es.json",
+    "copy": "mkdir lib && cp ./{package.json,LICENSE,README.md,yarn.lock} ./lib",
     "docs": "typedoc --out documentation/ src/ --theme minimal",
     "test": "jest",
-    "test-watch": "jest --watch"
+    "test-watch": "jest --watch",
+    "postinstall": "npm run copy && npm run build"
   },
   "jest": {
     "transform": {
@@ -31,7 +33,7 @@
     "jest": "26.4.2",
     "prettier": "^2.0.1",
     "ts-jest": "26.3.0",
-    "ts-toolbelt": "^8.0.6",
+    "ts-toolbelt": "^8.0.7",
     "typescript": "4.0.2"
   },
   "dependencies": {
