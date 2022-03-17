@@ -1,6 +1,6 @@
 {
   "name": "purifree-ts",
-  "version": "0.16.0-beta.10",
+  "version": "0.17.0-alpha.1",
   "description": "Point-free Functional programming library for TypeScript",
   "main": "index.js",
   "types": "index.d.ts",
@@ -10,11 +10,9 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc && tsc -p tsconfig.es.json",
-    "copy": "mkdir lib && cp ./{package.json,LICENSE,README.md,yarn.lock} ./lib",
     "docs": "typedoc --out documentation/ src/ --theme minimal",
     "test": "jest",
-    "test-watch": "jest --watch",
-    "postinstall": "npm run copy && npm run build"
+    "test-watch": "jest --watch"
   },
   "jest": {
     "transform": {
@@ -37,6 +35,7 @@
     "typescript": "4.0.2"
   },
   "dependencies": {
-    "@types/json-schema": "^7.0.4"
+    "@types/json-schema": "^7.0.4",
+    "purify-ts": "^1.2.0"
   }
 }
