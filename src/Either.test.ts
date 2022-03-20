@@ -1,5 +1,6 @@
 import { Nothing, Just } from './Maybe'
 import { Either, Left, Right } from './Either'
+import { NonEmptyList } from 'purify-ts'
 
 const anything = Math.random()
 
@@ -239,4 +240,8 @@ describe('Either', () => {
     expect(Right(5).swap()).toEqual(Left(5))
     expect(Left(5).swap()).toEqual(Right(5))
   })
+
+  // test('traverse', () => {
+  //   expect(NonEmptyList.fromArray([1, 2, 3]).traverse(Right(num => num * 2)), )
+  // })
 })
