@@ -35,6 +35,7 @@
     "typescript": "4.0.2"
   },
   "dependencies": {
-    "@types/json-schema": "^7.0.4"
+    "@types/json-schema": "^7.0.4",
+    "purify-ts": "^1.2.0"
   }
 }
