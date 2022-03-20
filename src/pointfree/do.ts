@@ -1,7 +1,5 @@
-import { Any, U } from 'ts-toolbelt'
 import { Right } from '../Either'
 import { Just } from '../Maybe'
-import { pipe } from '../utils'
 import { chain, Chainable, chainFlex } from './chain'
 import { filter } from './filter'
 import { of, ReplaceFirst, Type, URIS } from './hkt'

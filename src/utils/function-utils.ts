@@ -1,7 +1,5 @@
 // From fp-ts
 
-import { identity } from '..'
-
 /**
  * A *thunk*
  *
@@ -47,9 +45,9 @@ export interface FunctionN<A extends ReadonlyArray<unknown>, B> {
 /**
  *
  */
-// export function identity<A>(a: A): A {
-//   return a
-// }
+export function identity<A>(a: A): A {
+  return a
+}
 
 /**
  *

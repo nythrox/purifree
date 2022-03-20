@@ -1,8 +1,6 @@
-import { NoInfer } from 'Function/_api'
-import { Left, pipe, Right } from '..'
+import { NoInfer } from 'utils'
 import {
   HKT,
-  ReplaceFirst,
   ReplaceSecond,
   Type,
   URIS

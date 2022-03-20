@@ -1,12 +1,9 @@
 import { Tuple } from './Tuple'
 import { Maybe, Just, Nothing } from './Maybe'
-import { Order, orderToNumber } from './Function'
 import { ApKind } from './pointfree/ap'
-import { of, ReplaceFirst, Type, URIS } from './pointfree/hkt'
-import { Either, NonEmptyArray, NonEmptyList, ofAp, Right } from '.'
-import { EitherAsync } from './EitherAsync'
-import { pipe } from './utils/function-utils'
-import { map } from './pointfree/map'
+import { ReplaceFirst, Type, URIS } from './pointfree/hkt'
+import { NonEmptyArray, ofAp } from '.'
+import { Order, orderToNumber } from "purify-ts"
 
 /** Returns Just the first element of an array or Nothing if there is none. If you don't want to work with a Maybe but still keep type safety, check out `List` */
 const head = <T>(list: T[]): Maybe<T> =>

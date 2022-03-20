@@ -1,10 +1,21 @@
 import { ApKind, ofAp } from './pointfree/ap'
 import { ofSymbol } from './pointfree/do'
-import { ReplaceFirst, Type, URIS } from './pointfree/hkt'
+import { HKT, ReplaceFirst, Type, URIS } from './pointfree/hkt'
 
 import { Right, Either, Left } from 'purify-ts/Either'
+
+export const EITHER_URI = 'Either'
+
+export type EITHER_URI = typeof EITHER_URI
+
+declare module './pointfree/hkt' {
+  export interface URI2HKT<Types extends any[]> {
+    [EITHER_URI]: Either<Types[1], Types[0]>
+  }
+}
+
 declare module 'purify-ts/Either' {
-  interface Either<L, R> {
+  interface Either<L, R> extends HKT<EITHER_URI, [R, L]> {
     readonly _URI: EITHER_URI
     readonly _A: [R, L]
 
@@ -35,163 +46,54 @@ declare module 'purify-ts/Either' {
       of: ofAp<Ap['_URI']>
     ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
   }
-  interface Right<R, L = never> {
-    readonly _URI: EITHER_URI
-
-    readonly _A: [R, L]
-
-    [ofSymbol]: typeof Either.of
-
-    'fantasy-land/traverse'<
-      URI extends URIS,
-      AP extends ApKind<any, any> = ApKind<URI, any>
-    >(
-      of: ofAp<URI>,
-      f: (a: R) => AP
-    ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>>
-
-    traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
-      _of: ofAp<URI>,
-      f: (a: R) => AP
-    ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>>
-
-    'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
-      this: Either<L, Ap>,
-      of: ofAp<Ap['_URI']>
-    ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
-
-    sequence<Ap extends ApKind<any, any>>(
-      this: Either<L, Ap>,
-      _of: ofAp<Ap['_URI']>
-    ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
-  }
-  interface Left<L, R = never> {
-    readonly _URI: EITHER_URI
-    readonly _A: [R, L]
-
-    [ofSymbol]: typeof Either.of
-
-    'fantasy-land/traverse'<
-      URI extends URIS,
-      AP extends ApKind<any, any> = ApKind<URI, any>
-    >(
-      of: ofAp<URI>,
-      f: (a: R) => AP
-    ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>>
-
-    traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
-      of: ofAp<URI>,
-      _f: (a: R) => AP
-    ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>>
-
-    'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
-      this: Either<L, Ap>,
-      of: ofAp<Ap['_URI']>
-    ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
-
-    sequence<Ap extends ApKind<any, any>>(
-      this: Either<L, Ap>,
-      of: ofAp<Ap['_URI']>
-    ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
-  }
 }
 
-type L = any
-type R = any
-type Ap = any
+// God, I'm so sorry
+const _right = Object.getPrototypeOf(Right(undefined))
+const _left = Object.getPrototypeOf(Left(undefined))
 
-Right.prototype[ofSymbol] = Either.of
-Right.prototype[Symbol.iterator] = function* (): ThisType<any> {
+_right[ofSymbol] = Either.of
+_right[Symbol.iterator] = function* (): ThisType<any> {
   return yield this
 }
-Right.prototype['fantasy-land/traverse'] = function <
-  URI extends URIS,
-  AP extends ApKind<any, any> = ApKind<URI, any>
->(
-  of: ofAp<URI>,
-  f: (a: R) => AP
-): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
+_right['fantasy-land/traverse'] = function (of: any, f: (a: any) => any): any {
   return this.traverse(of, f)
 }
 
-Right.prototype.traverse = function <
-  URI extends URIS,
-  AP extends ApKind<any, any> = ApKind<URI, any>
->(
-  _of: ofAp<URI>,
-  f: (a: R) => AP
-): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
+_right.traverse = function (_of: any, f: any): any {
   const result = f(this.__value)
   return result.map(Right)
 }
 
-Right.prototype['fantasy-land/sequence'] = function (
-  this: Either<L, Ap>,
-  of: ofAp<Ap['_URI']>
-): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
+_right['fantasy-land/sequence'] = function (of: any): any {
   return this.sequence(of)
 }
 
-Right.prototype.sequence = function <Ap extends ApKind<any, any>>(
-  this: Either<L, Ap>,
-  _of: ofAp<Ap['_URI']>
-): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
-  return (this as any).__value.map(Right)
+_right.sequence = function (_of: any): any {
+  return this.__value.map(Right)
 }
 
-export const EITHER_URI = 'Either'
+_left[ofSymbol] = Either.of
 
-export type EITHER_URI = typeof EITHER_URI
-
-declare module './pointfree/hkt' {
-  export interface URI2HKT<Types extends any[]> {
-    [EITHER_URI]: Either<Types[1], Types[0]>
-  }
-}
-
-Left.prototype[ofSymbol] = Either.of
-
-Left.prototype[Symbol.iterator] = function* (): ThisType<any> {
+_left[Symbol.iterator] = function* (): ThisType<any> {
   return yield this
 }
 
-Left.prototype['fantasy-land/traverse'] = function <
-  URI extends URIS,
-  AP extends ApKind<any, any> = ApKind<URI, any>
->(
-  of: ofAp<URI>,
-  f: (a: R) => AP
-): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
-  return this.traverse(of, f)
+_left['fantasy-land/traverse'] = function (f: any): any {
+  return this.traverse(f)
 }
 
-Left.prototype.traverse = function <
-  URI extends URIS,
-  AP extends ApKind<any, any> = ApKind<URI, any>
->(
-  of: ofAp<URI>,
-  _f: (a: R) => AP
-): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
+_left.traverse = function (of: any, _f: any): any {
   return of(this) as any
 }
 
-Left.prototype['fantasy-land/sequence'] = function <
-  Ap extends ApKind<any, any>
->(
-  this: Either<L, Ap>,
-  of: ofAp<Ap['_URI']>
-): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
+_left['fantasy-land/sequence'] = function (of: any): any {
   return this.sequence(of)
 }
 
-Left.prototype.sequence = function <Ap extends ApKind<any, any>>(
-  this: Either<L, Ap>,
-  of: ofAp<Ap['_URI']>
-): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
+_left.sequence = function (of: any): any {
   return of(this)
 }
-
-// const right = <R, L = never>(value: R): Either<L, R> => Right(value)
 
 export type IsLeft = {
   <L, R>(either: Either<L, R>): either is Either<L, never>
@@ -207,4 +109,5 @@ export const isRight: IsRight = <L, R>(
   either: Either<L, R>
 ): either is Either<never, R> => either.isRight()
 
-export * from 'purify-ts/Either'
+export { Right, Either, Left } from 'purify-ts/Either'
+export type { EitherPatterns } from 'purify-ts/Either'

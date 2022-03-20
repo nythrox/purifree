@@ -1,6 +1,4 @@
-export * from './Codec'
 export * from './Either'
-export * from './Function'
 export * from './List'
 export * from './Maybe'
 export * from './utils'

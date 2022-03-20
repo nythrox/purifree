@@ -1,10 +1,20 @@
 import { ApKind, ofAp } from './pointfree/ap'
 import { ofSymbol } from './pointfree/do'
-import { ReplaceFirst, Type, URIS } from './pointfree/hkt'
-import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
+import { HKT, ReplaceFirst, Type, URIS } from './pointfree/hkt'
+import { Just, Maybe, Nothing as nothing } from 'purify-ts/Maybe'
 
-declare module 'purify-ts/Maybe' {
-  interface Maybe<T> {
+export const MAYBE_URI = 'Maybe'
+
+export type MAYBE_URI = typeof MAYBE_URI
+
+declare module './pointfree/hkt' {
+  export interface URI2HKT<Types extends any[]> {
+    [MAYBE_URI]: Maybe<Types[0]>
+  }
+}
+
+declare module 'purify-ts' {
+  interface Maybe<T> extends HKT<MAYBE_URI, [T]> {
     readonly _URI: MAYBE_URI
     readonly _A: [T]
 
@@ -24,152 +34,88 @@ declare module 'purify-ts/Maybe' {
     'fantasy-land/traverse': this['traverse']
     'fantasy-land/sequence': this['sequence']
   }
-  interface Just<T> {
-    readonly _URI: MAYBE_URI
-    readonly _A: [T]
-
-    traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
-      _of: ofAp<URI>,
-      f: (a: T) => AP
-    ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>>
-
-    'fantasy-land/traverse'<
-      URI extends URIS,
-      AP extends ApKind<any, any> = ApKind<URI, any>
-    >(
-      of: ofAp<URI>,
-      f: (a: T) => AP
-    ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>>
-
-    'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
-      this: Maybe<Ap>,
-      of: ofAp<Ap['_URI']>
-    ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>>
-
-    sequence<Ap extends ApKind<any, any>>(
-      this: Maybe<Ap>,
-      _of: ofAp<Ap['_URI']>
-    ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>>
-  }
-  interface Nothing {
-    readonly _URI: MAYBE_URI
-    readonly _A: [never]
-
-    traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
-      of: ofAp<URI>,
-      _f: (a: never) => AP
-    ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>>
-
-    'fantasy-land/traverse'<
-      URI extends URIS,
-      AP extends ApKind<any, any> = ApKind<URI, any>
-    >(
-      of: ofAp<URI>,
-      f: (a: never) => AP
-    ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>>
-
-    'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
-      this: Maybe<Ap>,
-      of: ofAp<Ap['_URI']>
-    ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>>
-
-    sequence<Ap extends ApKind<any, any>>(
-      this: Maybe<Ap>,
-      of: ofAp<Ap['_URI']>
-    ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>>
-  }
 }
 
-export const MAYBE_URI = 'Maybe'
+// God, I'm so sorry
+const _just = Object.getPrototypeOf(Just(undefined));
+const _nothingPrototype = Object.getPrototypeOf(nothing)
 
-export type MAYBE_URI = typeof MAYBE_URI
-
-declare module './pointfree/hkt' {
-  export interface URI2HKT<Types extends any[]> {
-    [MAYBE_URI]: Maybe<Types[0]>
-  }
+_just[Symbol.iterator] = function* (): ThisType<any> {
+  return yield this
 }
 
-type T = any
+_just[ofSymbol] = Maybe.of
 
-Just.prototype[Symbol.iterator] = function* (): ThisType<any> {
-  return (yield this) as T
-}
-Just.prototype[ofSymbol] = Maybe.of
-
-Just.prototype.traverse = function <
-  URI extends URIS,
-  AP extends ApKind<any, any> = ApKind<URI, any>
->(
-  _of: ofAp<URI>,
-  f: (a: T) => AP
-): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>> {
+_just.traverse = function (_of: any, f: any): any {
   const result = f(this.__value)
   return result.map(Just)
 }
 
-Just.prototype['fantasy-land/traverse'] = function <
-  URI extends URIS,
-  AP extends ApKind<any, any> = ApKind<URI, any>
->(
-  of: ofAp<URI>,
-  f: (a: T) => AP
-): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>> {
+_just['fantasy-land/traverse'] = function (of: any, f: any): any {
   return this.traverse(of, f)
 }
-Just.prototype['fantasy-land/sequence'] = function <
-  Ap extends ApKind<any, any>
->(
-  this: Maybe<Ap>,
-  of: ofAp<Ap['_URI']>
-): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>> {
+
+_just['fantasy-land/sequence'] = function (of: any): any {
   return this.sequence(of)
 }
-Just.prototype.sequence = function <Ap extends ApKind<any, any>>(
-  this: Maybe<Ap>,
-  _of: ofAp<Ap['_URI']>
-): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>> {
-  return (this as any).__value.map(Just)
+
+_just.sequence = function (_of: any): any {
+  return this.__value.map(Just)
 }
 
-Nothing.constructor.prototype[Symbol.iterator] = function* (): ThisType<never> {
+_nothingPrototype[Symbol.iterator] = function* (): ThisType<never> {
   return (yield this) as never
 }
 
-Nothing.constructor.prototype[ofSymbol] = Maybe.of
+_nothingPrototype[ofSymbol] = Maybe.of
 
-Nothing.constructor.prototype.traverse = function <
-  URI extends URIS,
-  AP extends ApKind<any, any> = ApKind<URI, any>
->(
-  of: ofAp<URI>,
-  _f: (a: never) => AP
-): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>> {
+_nothingPrototype.traverse = function (of: any, _f: any): any {
   return of(this) as any
 }
-Nothing.constructor.prototype['fantasy-land/traverse'] = function <
-  URI extends URIS,
-  AP extends ApKind<any, any> = ApKind<URI, any>
->(
-  of: ofAp<URI>,
-  f: (a: never) => AP
-): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>> {
+
+_nothingPrototype['fantasy-land/traverse'] = function (of: any, f: any) {
   return this.traverse(of, f)
 }
-Nothing.constructor.prototype['fantasy-land/sequence'] = function <
-  Ap extends ApKind<any, any>
->(
-  this: Maybe<Ap>,
-  of: ofAp<Ap['_URI']>
-): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>> {
+
+_nothingPrototype['fantasy-land/sequence'] = function (of: any): any {
   return this.sequence(of)
 }
 
-Nothing.constructor.prototype.sequence = function <Ap extends ApKind<any, any>>(
-  this: Maybe<Ap>,
-  of: ofAp<Ap['_URI']>
-): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>> {
+_nothingPrototype.sequence = function (of: any): any {
   return of(this) as any
 }
 
-export * from 'purify-ts/Maybe'
+
+type N = typeof nothing & Maybe<never>
+
+interface Nothing extends N {
+  readonly _URI: MAYBE_URI
+  readonly _A: [never]
+
+  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+    of: ofAp<URI>,
+    _f: (a: never) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>>
+
+  'fantasy-land/traverse'<
+    URI extends URIS,
+    AP extends ApKind<any, any> = ApKind<URI, any>
+  >(
+    of: ofAp<URI>,
+    f: (a: never) => AP
+  ): Type<URI, ReplaceFirst<AP['_A'], Maybe<AP['_A'][0]>>>
+
+  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
+    this: Maybe<Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>>
+
+  sequence<Ap extends ApKind<any, any>>(
+    this: Maybe<Ap>,
+    of: ofAp<Ap['_URI']>
+  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>>
+}
+
+export type { MaybePatterns } from 'purify-ts/Maybe'
+export { Maybe, Just } from 'purify-ts/Maybe'
+export const Nothing: Nothing = nothing as any;

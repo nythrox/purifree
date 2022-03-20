@@ -1,30 +1,29 @@
-import { L } from 'ts-toolbelt'
 export type URIS = keyof URI2HKT<any>
 export interface HKT<F extends URIS, A extends any[]> {
   _URI: F
   _A: A
 }
 
-export type TypeFromHKT<
-  other extends HKT<any, any>,
-  replaceA extends any[]
-> = Type<other['_URI'], Replace<other['_A'], replaceA>>
+// export type TypeFromHKT<
+//   other extends HKT<any, any>,
+//   replaceA extends any[]
+// > = Type<other['_URI'], Replace<other['_A'], replaceA>>
 
-export type HKTFrom<
-  other extends HKT<any, any>,
-  A extends any[],
-  uri extends URIS = other['_URI'],
-  oldA extends any[] = other['_A']
-> = HKT<uri, Replace<oldA, A>>
+// export type HKTFrom<
+//   other extends HKT<any, any>,
+//   A extends any[],
+//   uri extends URIS = other['_URI'],
+//   oldA extends any[] = other['_A']
+// > = HKT<uri, Replace<oldA, A>>
 
-export type Replace<oldA extends any[], newA extends any[]> = 
+// export type Replace<oldA extends any[], newA extends any[]> = 
+// // [
+// //   ...L.Merge<newA, oldA>
+// // ]
 // [
-//   ...L.Merge<newA, oldA>
+//   ...newA,
+//   ...L.Drop<oldA, L.Length<newA, 's'>, '->'>
 // ]
-[
-  ...newA,
-  ...L.Drop<oldA, L.Length<newA, 's'>, '->'>
-]
 
 export type ReplaceFirst<Arr extends any[], T extends any> = Arr extends [
   infer _Head,

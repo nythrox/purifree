@@ -1,4 +1,4 @@
-import { NoInfer } from 'Function/_api'
+import { NoInfer } from 'utils/typeUtils'
 import { ApKind, ofAp } from './ap'
 import { HKT, ReplaceFirst, Type, URIS } from './hkt'
 
