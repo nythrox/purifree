@@ -29,4 +29,4 @@ _maybeAsync[Symbol.iterator] = function* (): any {
 }
 // [ofSymbol] = MaybeAsync.of
 
-export { MaybeAsync }
+export * from 'purify-ts/MaybeAsync'

@@ -29,4 +29,4 @@ _eitherAsync[Symbol.iterator] = function* (): any {
   return yield this
 }
 
-export { EitherAsync }
+export * from 'purify-ts/EitherAsync'
