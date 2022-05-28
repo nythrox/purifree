@@ -37,7 +37,7 @@ declare module 'purify-ts' {
 }
 
 // God, I'm so sorry
-const _just = Object.getPrototypeOf(Just(undefined));
+const _just = Object.getPrototypeOf(Just(undefined))
 const _nothingPrototype = Object.getPrototypeOf(nothing)
 
 _just[Symbol.iterator] = function* (): ThisType<any> {
@@ -85,7 +85,6 @@ _nothingPrototype.sequence = function (of: any): any {
   return of(this) as any
 }
 
-
 type N = typeof nothing & Maybe<never>
 
 interface Nothing extends N {
@@ -118,4 +117,4 @@ interface Nothing extends N {
 
 export type { MaybePatterns } from 'purify-ts/Maybe'
 export { Maybe, Just } from 'purify-ts/Maybe'
-export const Nothing: Nothing = nothing as any;
+export const Nothing: Nothing = nothing as any

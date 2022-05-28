@@ -1,5 +1,5 @@
 import { MaybeAsync } from './MaybeAsync'
-import { Just, Nothing, Maybe } from './Maybe'
+import { Just, Nothing } from './Maybe'
 import { Left, Right } from './Either'
 
 describe('MaybeAsync', () => {
@@ -155,9 +155,9 @@ describe('MaybeAsync', () => {
 
   test('liftPromise static', async () => {
     expect(
-      await MaybeAsync.liftPromise(() => Promise.resolve(5)).run()
+      await MaybeAsync.fromPromise(() => Promise.resolve(Just(5))).run()
     ).toEqual(Just(5))
-    expect(await MaybeAsync.liftPromise(() => Promise.reject()).run()).toEqual(
+    expect(await MaybeAsync.fromPromise(() => Promise.reject()).run()).toEqual(
       Nothing
     )
   })
