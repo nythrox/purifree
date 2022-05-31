@@ -166,8 +166,4 @@ describe('MaybeAsync', () => {
     expect(await MaybeAsync.liftMaybe(Just(5)).run()).toEqual(Just(5))
     expect(await MaybeAsync.liftMaybe(Nothing).run()).toEqual(Nothing)
   })
-
-  test('added prototypes', () => {
-    console.log(Object.getPrototypeOf(MaybeAsync.liftMaybe(Nothing)))
-  })
 })

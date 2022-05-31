@@ -13,7 +13,7 @@ describe('Either', () => {
     expect(Left(Error()).constructor).toEqual(Either)
     expect(Right(5).constructor).toEqual(Either)
 
-    const sequenceTest2 = Right(NonEmptyList(1, 2)).sequence(NonEmptyList)
+    const sequenceTest2 = Right(NonEmptyList([1, 2])).sequence(NonEmptyList.of)
     expect(sequenceTest2).toEqual([Right(1), Right(2)])
   })
 })
