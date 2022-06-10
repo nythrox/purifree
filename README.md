@@ -138,5 +138,8 @@ const add5Option = addL(Right(5))
 const result = add5Option(Right(10))
 ```
 
+### Node for Codec
+The Codec module's function `map` is re-exported as `record`, or as `Codec.map`
+
 ### Codesandbox
 You can try it out <a href="https://codesandbox.io/s/purifree-template-hcyzs"> in the browser.  </a>

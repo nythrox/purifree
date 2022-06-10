@@ -1,6 +1,6 @@
 {
   "name": "purifree-ts",
-  "version": "0.16.0-beta.10",
+  "version": "1.2.2",
   "description": "Point-free Functional programming library for TypeScript",
   "main": "index.js",
   "types": "index.d.ts",
