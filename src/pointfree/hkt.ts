@@ -1,4 +1,3 @@
-import { L } from 'ts-toolbelt'
 export type URIS = keyof URI2HKT<any>
 export interface HKT<F extends URIS, A extends any[]> {
   _URI: F
@@ -8,32 +7,32 @@ export interface HKT<F extends URIS, A extends any[]> {
 export type TypeFromHKT<
   other extends HKT<any, any>,
   replaceA extends any[]
-> = Type<other['_URI'], Replace<other['_A'], replaceA>>
+> = Type<other['_URI'], ReplaceUpTo3<other['_A'], replaceA>>
+
+type ReplaceUpTo3<
+  O extends any[],
+  R extends any[],
+  L = R['length']
+> = L extends 3
+  ? R
+  : L extends 2
+  ? [R[0], R[1], O[2]]
+  : L extends 1
+  ? [R[0], O[1], O[2]]
+  : O
 
 export type HKTFrom<
   other extends HKT<any, any>,
   A extends any[],
   uri extends URIS = other['_URI'],
   oldA extends any[] = other['_A']
-> = HKT<uri, Replace<oldA, A>>
-
-export type Replace<oldA extends any[], newA extends any[]> = 
-// [
-//   ...L.Merge<newA, oldA>
-// ]
-[
-  ...newA,
-  ...L.Drop<oldA, L.Length<newA, 's'>, '->'>
-]
+> = HKT<uri, ReplaceUpTo3<oldA, A>>
 
 export type ReplaceFirst<Arr extends any[], T extends any> = Arr extends [
   infer _Head,
   ...infer Rest
 ]
-  ? // ? [T, ...Rest]
-    // : Arr
-
-    [T, ...Rest]
+  ? [T, ...Rest]
   : [T, ...any]
 
 export type ReplaceSecond<Arr extends any[], T> = Arr extends [
@@ -42,8 +41,7 @@ export type ReplaceSecond<Arr extends any[], T> = Arr extends [
   ...infer Rest
 ]
   ? [Head, T, ...Rest]
-  : // : Arr
-  Arr extends [infer Head]
+  : Arr extends [infer Head]
   ? [Head, T]
   : [undefined, T]
 
@@ -53,8 +51,7 @@ export type SumSecondArg<Arr extends any[], T> = Arr extends [
   ...infer Rest
 ]
   ? [Head, T | Second, ...Rest]
-  : // : Arr
-  Arr extends [infer Head]
+  : Arr extends [infer Head]
   ? [Head, T]
   : [undefined, T]
 export type ReplaceFirstAndSecond<Arr extends any[], A, B> = Arr extends [
@@ -63,8 +60,7 @@ export type ReplaceFirstAndSecond<Arr extends any[], A, B> = Arr extends [
   ...infer Rest
 ]
   ? [A, B, ...Rest]
-  : // : Arr
-    [A, B]
+  : [A, B]
 
 export type OrNever<K> = unknown extends K ? never : K
 export type ProtectFromNever<T> = OrNever<T> extends never ? never : T
@@ -82,8 +78,7 @@ export type SwapFirstTwo<Arr extends any[]> = Arr extends [
   ...infer Rest
 ]
   ? [Second, First, ...Rest]
-  : // : Arr
-  Arr extends [infer First]
+  : Arr extends [infer First]
   ? [undefined, First]
   : []
 

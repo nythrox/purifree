@@ -1,7 +1,5 @@
 // From fp-ts
 
-import { identity } from '..'
-
 /**
  * A *thunk*
  *
@@ -34,7 +32,7 @@ export interface Endomorphism<A> {
 
 /**
  * @example
- * import { FunctionN } from 'fp-ts/function'
+ * import { FunctionN } from 'purifree-ts/function'
  *
  * export const sum: FunctionN<[number, number], number> = (a, b) => a + b
  *
@@ -47,9 +45,9 @@ export interface FunctionN<A extends ReadonlyArray<unknown>, B> {
 /**
  *
  */
-// export function identity<A>(a: A): A {
-//   return a
-// }
+export function identity<A>(a: A): A {
+  return a
+}
 
 /**
  *
@@ -131,7 +129,7 @@ export function flip<A, B, C>(f: (a: A, b: B) => C): (b: B, a: A) => C {
  * See also [`pipe`](#pipe).
  *
  * @example
- * import { flow } from 'fp-ts/function'
+ * import { flow } from 'purifree-ts/function'
  *
  * const len = (s: string): number => s.length
  * const double = (n: number): number => n * 2
@@ -216,54 +214,10 @@ export function flow<
   hi: (h: H) => I,
   ij: (i: I) => J
 ): (...a: A) => J
-export function flow(
-  ab: Function,
-  bc?: Function,
-  cd?: Function,
-  de?: Function,
-  ef?: Function,
-  fg?: Function,
-  gh?: Function,
-  hi?: Function,
-  ij?: Function
-): unknown {
-  switch (arguments.length) {
-    case 1:
-      return ab
-    case 2:
-      return function (this: unknown) {
-        return bc!(ab.apply(this, arguments))
-      }
-    case 3:
-      return function (this: unknown) {
-        return cd!(bc!(ab.apply(this, arguments)))
-      }
-    case 4:
-      return function (this: unknown) {
-        return de!(cd!(bc!(ab.apply(this, arguments))))
-      }
-    case 5:
-      return function (this: unknown) {
-        return ef!(de!(cd!(bc!(ab.apply(this, arguments)))))
-      }
-    case 6:
-      return function (this: unknown) {
-        return fg!(ef!(de!(cd!(bc!(ab.apply(this, arguments))))))
-      }
-    case 7:
-      return function (this: unknown) {
-        return gh!(fg!(ef!(de!(cd!(bc!(ab.apply(this, arguments)))))))
-      }
-    case 8:
-      return function (this: unknown) {
-        return hi!(gh!(fg!(ef!(de!(cd!(bc!(ab.apply(this, arguments))))))))
-      }
-    case 9:
-      return function (this: unknown) {
-        return ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab.apply(this, arguments)))))))))
-      }
+export function flow(...fns: Array<(...args: unknown[]) => unknown>): unknown {
+  return function (...args: unknown[]) {
+    return fns.slice(1).reduce((acc, fn) => fn(acc), fns[0](...args))
   }
-  return
 }
 
 /**
@@ -298,7 +252,7 @@ export function absurd<A>(_: never): A {
  * Creates a tupled version of this function: instead of `n` arguments, it accepts a single tuple argument.
  *
  * @example
- * import { tupled } from 'fp-ts/function'
+ * import { tupled } from 'purifree-ts/function'
  *
  * const add = tupled((x: number, y: number): number => x + y)
  *
@@ -326,7 +280,7 @@ export function untupled<A extends ReadonlyArray<unknown>, B>(
  * See also [`flow`](#flow).
  *
  * @example
- * import { pipe } from 'fp-ts/function'
+ * import { pipe } from 'purifree-ts/function'
  *
  * const len = (s: string): number => s.length
  * const double = (n: number): number => n * 2
@@ -607,115 +561,9 @@ export function pipe<
 ): T
 export function pipe(
   a: unknown,
-  ab?: Function,
-  bc?: Function,
-  cd?: Function,
-  de?: Function,
-  ef?: Function,
-  fg?: Function,
-  gh?: Function,
-  hi?: Function,
-  ij?: Function,
-  jk?: Function,
-  kl?: Function,
-  lm?: Function,
-  mn?: Function,
-  no?: Function,
-  op?: Function,
-  pq?: Function,
-  qr?: Function,
-  rs?: Function,
-  st?: Function
+  ...fns: Array<(...args: unknown[]) => unknown>
 ): unknown {
-  switch (arguments.length) {
-    case 1:
-      return a
-    case 2:
-      return ab!(a)
-    case 3:
-      return bc!(ab!(a))
-    case 4:
-      return cd!(bc!(ab!(a)))
-    case 5:
-      return de!(cd!(bc!(ab!(a))))
-    case 6:
-      return ef!(de!(cd!(bc!(ab!(a)))))
-    case 7:
-      return fg!(ef!(de!(cd!(bc!(ab!(a))))))
-    case 8:
-      return gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))))
-    case 9:
-      return hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a))))))))
-    case 10:
-      return ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))))))
-    case 11:
-      return jk!(ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a))))))))))
-    case 12:
-      return kl!(jk!(ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))))))))
-    case 13:
-      return lm!(kl!(jk!(ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a))))))))))))
-    case 14:
-      return mn!(lm!(kl!(jk!(ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))))))))))
-    case 15:
-      return no!(
-        mn!(lm!(kl!(jk!(ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))))))))))
-      )
-    case 16:
-      return op!(
-        no!(mn!(lm!(kl!(jk!(ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a))))))))))))))
-      )
-    case 17:
-      return pq!(
-        op!(
-          no!(
-            mn!(lm!(kl!(jk!(ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))))))))))
-          )
-        )
-      )
-    case 18:
-      return qr!(
-        pq!(
-          op!(
-            no!(
-              mn!(lm!(kl!(jk!(ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))))))))))
-            )
-          )
-        )
-      )
-    case 19:
-      return rs!(
-        qr!(
-          pq!(
-            op!(
-              no!(
-                mn!(
-                  lm!(kl!(jk!(ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a))))))))))))
-                )
-              )
-            )
-          )
-        )
-      )
-    case 20:
-      return st!(
-        rs!(
-          qr!(
-            pq!(
-              op!(
-                no!(
-                  mn!(
-                    lm!(
-                      kl!(jk!(ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))))))))
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-  }
-  return
+  return fns.reduce((acc, fn) => fn(acc), a)
 }
 
 /**
@@ -736,6 +584,7 @@ export const bind_ = <A, N extends string, B>(
 /**
  * @internal
  */
-export const bindTo_ = <N extends string>(name: N) => <B>(
-  b: B
-): { [K in N]: B } => ({ [name]: b } as any)
+export const bindTo_ =
+  <N extends string>(name: N) =>
+  <B>(b: B): { [K in N]: B } =>
+    ({ [name]: b } as any)

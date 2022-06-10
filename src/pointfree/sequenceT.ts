@@ -1,14 +1,7 @@
 import { List } from '../List'
 import { ApKind, ofAp } from './ap'
 import { IsUnion } from './do'
-import {
-  HKT,
-  ReplaceFirst,
-  Type,
-  URIS,
-  of,
-  ReplaceFirstAndReplaceSecondIfSecondIsNever
-} from './hkt'
+import { ReplaceFirst, Type } from './hkt'
 // type test<T extends ApKind<'Either', any>[]> = T
 // type smh = test<[Either<never, number>]>
 export const sequenceT = <Of extends ofAp<any>>(of: Of) => <

@@ -1,11 +1,8 @@
-import { Maybe, Just, Nothing } from './Maybe'
 import { ApKind, ofAp } from './pointfree/ap'
 import { ofSymbol } from './pointfree/do'
-import { ReplaceFirst, Type, URIS } from './pointfree/hkt'
+import { HKT, ReplaceFirst, Type, URIS } from './pointfree/hkt'
 
-export type EitherPatterns<L, R, T> =
-  | { Left: (l: L) => T; Right: (r: R) => T }
-  | { _: () => T }
+import { Right, Either, Left } from 'purify-ts/Either'
 
 export const EITHER_URI = 'Either'
 
@@ -17,600 +14,86 @@ declare module './pointfree/hkt' {
   }
 }
 
-export interface Either<L, R> {
-  readonly _URI: EITHER_URI
-  readonly _A: [R, L]
+declare module 'purify-ts/Either' {
+  interface Either<L, R> extends HKT<EITHER_URI, [R, L]> {
+    readonly _URI: EITHER_URI
+    readonly _A: [R, L]
 
-  [Symbol.iterator]: () => Iterator<Either<L, R>, R, any>
-  [ofSymbol]: EitherTypeRef['of']
-  /** Returns true if `this` is `Left`, otherwise it returns false */
-  isLeft(): this is Left<L, never>
-  /** Returns true if `this` is `Right`, otherwise it returns false */
-  isRight(): this is Right<R, never>
-  toJSON(): L | R
-  inspect(): string
-  toString(): string
-  /** Given two functions, maps the value inside `this` using the first if `this` is `Left` or using the second one if `this` is `Right`.
-   * If both functions return the same type consider using `Either#either` instead
-   */
-  bimap<L2, R2>(f: (value: L) => L2, g: (value: R) => R2): Either<L2, R2>
-  /** Maps the `Right` value of `this`, acts like an identity if `this` is `Left` */
-  map<R2>(f: (value: R) => R2): Either<L, R2>
-  /** Maps the `Left` value of `this`, acts like an identity if `this` is `Right` */
-  mapLeft<L2>(f: (value: L) => L2): Either<L2, R>
-  /** Applies a `Right` function over a `Right` value. Returns `Left` if either `this` or the function are `Left` */
-  ap<R2>(other: Either<L, (value: R) => R2>): Either<L, R2>
-  /** Compares `this` to another `Either`, returns false if the constructors or the values inside are different, e.g. `Right(5).equals(Left(5))` is false */
-  equals(other: Either<L, R>): boolean
-  /** Transforms `this` with a function that returns an `Either`. Useful for chaining many computations that may fail */
-  chain<R2>(f: (value: R) => Either<L, R2>): Either<L, R2>
-  /** The same as Either#chain but executes the transformation function only if the value is Left. Useful for recovering from errors */
-  chainLeft<L2>(f: (value: L) => Either<L2, R>): Either<L2, R>
-  /** Flattens nested Eithers. `e.join()` is equivalent to `e.chain(x => x)` */
-  join<R2>(this: Either<L, Either<L, R2>>): Either<L, R2>
-  /** Returns the first `Right` between `this` and another `Either` or the `Left` in the argument if both `this` and the argument are `Left` */
-  alt(other: Either<L, R>): Either<L, R>
-  /** Takes a reducer and an initial value and returns the initial value if `this` is `Left` or the result of applying the function to the initial value and the value inside `this` */
-  reduce<T>(reducer: (accumulator: T, value: R) => T, initialValue: T): T
-  /** Returns `this` if it's a `Left`, otherwise it returns the result of applying the function argument to `this` and wrapping it in a `Right` */
-  extend<R2>(f: (value: Either<L, R>) => R2): Either<L, R2>
-  /** Returns the value inside `this` if it's a `Right` or either throws the value or a generic exception depending on whether the value is an Error */
-  unsafeCoerce(): R
-  /** Structural pattern matching for `Either` in the form of a function */
-  caseOf<T>(patterns: EitherPatterns<L, R, T>): T
-  /** Returns the value inside `this` if it\'s `Left` or a default value if `this` is `Right` */
-  leftOrDefault(defaultValue: L): L
-  /** Returns the value inside `this` if it\'s `Right` or a default value if `this` is `Left` */
-  orDefault(defaultValue: R): R
-  /** Lazy version of `orDefault`. Takes a function that returns the default value, that function will be called only if `this` is `Left` */
-  orDefaultLazy(getDefaultValue: () => R): R
-  /** Lazy version of `leftOrDefault`. Takes a function that returns the default value, that function will be called only if `this` is `Right` */
-  leftOrDefaultLazy(getDefaultValue: () => L): L
-  /** Runs an effect if `this` is `Left`, returns `this` to make chaining other methods possible */
-  ifLeft(effect: (value: L) => any): this
-  /** Runs an effect if `this` is `Right`, returns `this` to make chaining other methods possible */
-  ifRight(effect: (value: R) => any): this
-  /** Constructs a `Just` with the value of `this` if it\'s `Right` or a `Nothing` if `this` is `Left` */
-  toMaybe(): Maybe<R>
-  /** Constructs a `Just` with the value of `this` if it\'s `Left` or a `Nothing` if `this` is `Right` */
-  leftToMaybe(): Maybe<L>
-  /** Given two map functions, maps using the first if `this` is `Left` or using the second one if `this` is `Right`.
-   * If you want the functions to return different types depending on the either you may want to use `Either#bimap` instead
-   * */
-  either<T>(ifLeft: (value: L) => T, ifRight: (value: R) => T): T
-  /** Extracts the value out of `this` */
-  extract(): this extends Right<R, never>
-    ? R
-    : this extends Left<L, never>
-    ? L
-    : L | R
-  /** Returns `Right` if `this` is `Left` and vice versa */
-  swap(): Either<R, L>
+    [Symbol.iterator]: () => Iterator<Either<L, R>, R, any>
 
-  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
-    of: ofAp<URI>,
-    f: (a: R) => AP
-  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>>
+    [ofSymbol]: typeof Either['of']
 
-  sequence<Ap extends ApKind<any, any>>(
-    this: Either<L, Ap>,
-    of: ofAp<Ap['_URI']>
-  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
-  'fantasy-land/traverse'<
-    URI extends URIS,
-    AP extends ApKind<any, any> = ApKind<URI, any>
-  >(
-    of: ofAp<URI>,
-    f: (a: R) => AP
-  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>>
-  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
-    this: Either<L, Ap>,
-    of: ofAp<Ap['_URI']>
-  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
-  'fantasy-land/bimap'<L2, R2>(
-    f: (value: L) => L2,
-    g: (value: R) => R2
-  ): Either<L2, R2>
-  'fantasy-land/map'<R2>(f: (value: R) => R2): Either<L, R2>
-  'fantasy-land/ap'<R2>(other: Either<L, (value: R) => R2>): Either<L, R2>
-  'fantasy-land/equals'(other: Either<L, R>): boolean
-  'fantasy-land/chain'<R2>(f: (value: R) => Either<L, R2>): Either<L, R2>
-  'fantasy-land/alt'(other: Either<L, R>): Either<L, R>
-  'fantasy-land/reduce'<T>(
-    reducer: (accumulator: T, value: R) => T,
-    initialValue: T
-  ): T
-  'fantasy-land/extend'<R2>(f: (value: Either<L, R>) => R2): Either<L, R2>
-}
+    traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
+      of: ofAp<URI>,
+      f: (a: R) => AP
+    ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>>
 
-interface EitherTypeRef {
-  /** Takes a value and wraps it in a `Right` */
-  of<L, R>(value: R): Either<L, R>
-  /** Takes a list of `Either`s and returns a list of all `Left` values */
-  lefts<L, R>(list: Either<L, R>[]): L[]
-  /** Takes a list of `Either`s and returns a list of all `Right` values */
-  rights<L, R>(list: Either<L, R>[]): R[]
-  /** Calls a function and returns a `Right` with the return value or an exception wrapped in a `Left` in case of failure */
-  encase<L extends Error, R>(throwsF: () => R): Either<L, R>
-  /** Turns a list of `Either`s into an `Either` of list */
-  sequence<L, R>(eithers: Either<L, R>[]): Either<L, R[]>
-  isEither<L, R>(x: unknown): x is Either<L, R>
+    sequence<Ap extends ApKind<any, any>>(
+      this: Either<L, Ap>,
+      of: ofAp<Ap['_URI']>
+    ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
 
-  'fantasy-land/of'<L, R>(value: R): Either<L, R>
-}
+    'fantasy-land/traverse'<
+      URI extends URIS,
+      AP extends ApKind<any, any> = ApKind<URI, any>
+    >(
+      of: ofAp<URI>,
+      f: (a: R) => AP
+    ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>>
 
-export const Either: EitherTypeRef = {
-  of<L, R>(value: R): Either<L, R> {
-    return right(value)
-  },
-  lefts<L, R>(list: Either<L, R>[]): L[] {
-    let result = []
-
-    for (const x of list) {
-      if (x.isLeft()) {
-        result.push(x.extract())
-      }
-    }
-
-    return result
-  },
-  rights<L, R>(list: Either<L, R>[]): R[] {
-    let result = []
-
-    for (const x of list) {
-      if (x.isRight()) {
-        result.push(x.extract())
-      }
-    }
-
-    return result
-  },
-  encase<L extends Error, R>(throwsF: () => R): Either<L, R> {
-    try {
-      return right(throwsF())
-    } catch (e) {
-      return left(e)
-    }
-  },
-  sequence<L, R>(eithers: Either<L, R>[]): Either<L, R[]> {
-    let res: R[] = []
-
-    for (const e of eithers) {
-      if (e.isLeft()) {
-        return e
-      }
-      res.push(e.extract() as R)
-    }
-
-    return right(res)
-  },
-  isEither<L, R>(x: unknown): x is Either<L, R> {
-    return x instanceof Left || x instanceof Right
-  },
-
-  'fantasy-land/of'<L, R>(value: R): Either<L, R> {
-    return Either.of(value)
+    'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
+      this: Either<L, Ap>,
+      of: ofAp<Ap['_URI']>
+    ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>>
   }
 }
 
-class Right<R, L = never> implements Either<L, R> {
-  private _ = 'R'
+// God, I'm so sorry
+const _right = Object.getPrototypeOf(Right(undefined))
+const _left = Object.getPrototypeOf(Left(undefined))
 
-  readonly _URI!: EITHER_URI
-  readonly _A!: [R, L]
-
-  constructor(private __value: R) {}
-  *[Symbol.iterator]() {
-    return (yield this) as R
-  }
-  [ofSymbol] = Either.of
-  isLeft(): false {
-    return false
-  }
-
-  isRight(): true {
-    return true
-  }
-
-  'fantasy-land/traverse'<
-    URI extends URIS,
-    AP extends ApKind<any, any> = ApKind<URI, any>
-  >(
-    of: ofAp<URI>,
-    f: (a: R) => AP
-  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
-    return this.traverse(of, f)
-  }
-
-  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
-    _of: ofAp<URI>,
-    f: (a: R) => AP
-  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
-    const result = f(this.__value)
-    return result.map(right)
-  }
-
-  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
-    this: Either<L, Ap>,
-    of: ofAp<Ap['_URI']>
-  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
-    return this.sequence(of)
-  }
-
-  sequence<Ap extends ApKind<any, any>>(
-    this: Either<L, Ap>,
-    _of: ofAp<Ap['_URI']>
-  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
-    return (this as any).__value.map(right)
-  }
-
-  toJSON(): R {
-    return this.__value
-  }
-
-  inspect(): string {
-    return `Right(${JSON.stringify(this.__value)})`
-  }
-
-  toString(): string {
-    return this.inspect()
-  }
-
-  bimap<L2, R2>(_f: (value: L) => L2, g: (value: R) => R2): Either<L2, R2> {
-    // bimap<L2, R2>(_: (value: L) => L2, g: (value: R) => R2): Either<L2, R2> {
-    return right(g(this.__value))
-  }
-
-  map<R2>(f: (value: R) => R2): Either<L, R2> {
-    return right(f(this.__value))
-  }
-
-  mapLeft<L2>(_: (value: L) => L2): Either<L2, R> {
-    return this as any
-  }
-
-  ap<R2>(other: Either<L, (value: R) => R2>): Either<L, R2> {
-    return other.isRight() ? this.map(other.extract()) : (other as any)
-  }
-
-  equals(other: Either<L, R>): boolean {
-    return other.isRight() ? this.__value === other.extract() : false
-  }
-
-  chain<R2>(f: (value: R) => Either<L, R2>): Either<L, R2> {
-    return f(this.__value)
-  }
-
-  chainLeft<L2>(_: (value: L) => Either<L2, R>): Either<L2, R> {
-    return this as any
-  }
-
-  join<R2>(this: Right<Either<L, R2>, L>): Either<L, R2> {
-    return this.__value as any
-  }
-
-  alt(_: Either<L, R>): Either<L, R> {
-    return this
-  }
-
-  reduce<T>(reducer: (accumulator: T, value: R) => T, initialValue: T): T {
-    return reducer(initialValue, this.__value)
-  }
-
-  extend<R2>(f: (value: Either<L, R>) => R2): Either<L, R2> {
-    return right(f(this))
-  }
-
-  unsafeCoerce(): R {
-    return this.__value
-  }
-
-  caseOf<T>(patterns: EitherPatterns<L, R, T>): T {
-    return '_' in patterns ? patterns._() : patterns.Right(this.__value)
-  }
-
-  leftOrDefault(defaultValue: L): L {
-    return defaultValue
-  }
-
-  orDefault(_: R): R {
-    return this.__value
-  }
-
-  orDefaultLazy(_: () => R): R {
-    return this.__value
-  }
-
-  leftOrDefaultLazy(getDefaultValue: () => L): L {
-    return getDefaultValue()
-  }
-
-  ifLeft(_: (value: L) => any): this {
-    return this
-  }
-
-  ifRight(effect: (value: R) => any): this {
-    return effect(this.__value), this
-  }
-
-  toMaybe(): Maybe<R> {
-    return Just(this.__value)
-  }
-
-  leftToMaybe(): Maybe<L> {
-    return Nothing
-  }
-
-  either<T>(_: (value: L) => T, ifRight: (value: R) => T): T {
-    return ifRight(this.__value)
-  }
-
-  extract(): this extends Right<R, never>
-    ? R
-    : this extends Left<L, never>
-    ? L
-    : L | R {
-    return this.__value as any
-  }
-
-  swap(): Either<R, L> {
-    return left(this.__value)
-  }
-
-  'fantasy-land/bimap'<L2, R2>(
-    f: (value: L) => L2,
-    g: (value: R) => R2
-  ): Either<L2, R2> {
-    return this.bimap(f, g)
-  }
-
-  'fantasy-land/map'<R2>(f: (value: R) => R2): Either<L, R2> {
-    return this.map(f)
-  }
-
-  'fantasy-land/ap'<R2>(other: Either<L, (value: R) => R2>): Either<L, R2> {
-    return this.ap(other)
-  }
-
-  'fantasy-land/equals'(other: Either<L, R>): boolean {
-    return this.equals(other)
-  }
-
-  'fantasy-land/chain'<R2>(f: (value: R) => Either<L, R2>): Either<L, R2> {
-    return this.chain(f)
-  }
-
-  'fantasy-land/alt'(other: Either<L, R>): Either<L, R> {
-    return this.alt(other)
-  }
-
-  'fantasy-land/reduce'<T>(
-    reducer: (accumulator: T, value: R) => T,
-    initialValue: T
-  ): T {
-    return this.reduce(reducer, initialValue)
-  }
-
-  'fantasy-land/extend'<R2>(f: (value: Either<L, R>) => R2): Either<L, R2> {
-    return this.extend(f)
-  }
+_right[ofSymbol] = Either.of
+_right[Symbol.iterator] = function* (): ThisType<any> {
+  return yield this
+}
+_right['fantasy-land/traverse'] = function (of: any, f: (a: any) => any): any {
+  return this.traverse(of, f)
 }
 
-Right.prototype.constructor = Either as any
-
-class Left<L, R = never> implements Either<L, R> {
-  private _ = 'L'
-
-  readonly _URI!: EITHER_URI
-  readonly _A!: [R, L]
-
-  constructor(private __value: L) {}
-
-  *[Symbol.iterator]() {
-    return (yield this) as R
-  }
-  [ofSymbol] = Either.of
-
-  isLeft(): true {
-    return true
-  }
-
-  isRight(): false {
-    return false
-  }
-
-  toJSON(): L {
-    return this.__value
-  }
-
-  inspect(): string {
-    return `Left(${JSON.stringify(this.__value)})`
-  }
-
-  toString(): string {
-    return this.inspect()
-  }
-
-  bimap<L2, R2>(f: (value: L) => L2, _g: (value: R) => R2): Either<L2, R2> {
-    // bimap<L2, R2>(f: (value: L) => L2, _: (value: R) => R2): Either<L2, R2> {
-    return left(f(this.__value))
-  }
-
-  'fantasy-land/traverse'<
-    URI extends URIS,
-    AP extends ApKind<any, any> = ApKind<URI, any>
-  >(
-    of: ofAp<URI>,
-    f: (a: R) => AP
-  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
-    return this.traverse(of, f)
-  }
-  traverse<URI extends URIS, AP extends ApKind<any, any> = ApKind<URI, any>>(
-    of: ofAp<URI>,
-    _f: (a: R) => AP
-  ): Type<URI, ReplaceFirst<AP['_A'], Either<L, AP['_A'][0]>>> {
-    return of(this) as any
-  }
-
-  'fantasy-land/sequence'<Ap extends ApKind<any, any>>(
-    this: Either<L, Ap>,
-    of: ofAp<Ap['_URI']>
-  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
-    return this.sequence(of)
-  }
-  sequence<Ap extends ApKind<any, any>>(
-    this: Either<L, Ap>,
-    of: ofAp<Ap['_URI']>
-  ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Either<L, Ap['_A'][0]>>> {
-    return of(this)
-  }
-
-  map<R2>(_: (value: R) => R2): Either<L, R2> {
-    return this as any
-  }
-
-  mapLeft<L2>(f: (value: L) => L2): Either<L2, R> {
-    return left(f(this.__value))
-  }
-
-  ap<R2>(other: Either<L, (value: R) => R2>): Either<L, R2> {
-    return other.isLeft() ? other : (this as any)
-  }
-
-  equals(other: Either<L, R>): boolean {
-    return other.isLeft() ? other.extract() === this.__value : false
-  }
-
-  chain<R2>(_: (value: R) => Either<L, R2>): Either<L, R2> {
-    return this as any
-  }
-
-  chainLeft<L2>(f: (value: L) => Either<L2, R>): Either<L2, R> {
-    return f(this.__value)
-  }
-
-  join<R2>(this: Either<L, Either<L, R2>>): Either<L, R2> {
-    return this as any
-  }
-
-  alt(other: Either<L, R>): Either<L, R> {
-    return other
-  }
-
-  reduce<T>(_: (accumulator: T, value: R) => T, initialValue: T): T {
-    return initialValue
-  }
-
-  extend<R2>(_: (value: Either<L, R>) => R2): Either<L, R2> {
-    return this as any
-  }
-
-  unsafeCoerce(): never {
-    if (this.__value instanceof Error) {
-      throw this.__value
-    }
-
-    throw new Error('Either#unsafeCoerce was ran on a Left')
-  }
-
-  caseOf<T>(patterns: EitherPatterns<L, R, T>): T {
-    return '_' in patterns ? patterns._() : patterns.Left(this.__value)
-  }
-
-  leftOrDefault(_: L): L {
-    return this.__value
-  }
-
-  orDefault(defaultValue: R): R {
-    return defaultValue
-  }
-
-  orDefaultLazy(getDefaultValue: () => R): R {
-    return getDefaultValue()
-  }
-
-  leftOrDefaultLazy(_: () => L): L {
-    return this.__value
-  }
-
-  ifLeft(effect: (value: L) => any): this {
-    return effect(this.__value), this
-  }
-
-  ifRight(_: (value: R) => any): this {
-    return this
-  }
-
-  toMaybe(): Maybe<R> {
-    return Nothing
-  }
-
-  leftToMaybe(): Maybe<L> {
-    return Just(this.__value)
-  }
-
-  either<T>(ifLeft: (value: L) => T, _: (value: R) => T): T {
-    return ifLeft(this.__value)
-  }
-
-  extract(): this extends Right<R, never>
-    ? R
-    : this extends Left<L, never>
-    ? L
-    : L | R {
-    return this.__value as any 
-  }
-
-  swap(): Either<R, L> {
-    return right(this.__value)
-  }
-
-  'fantasy-land/bimap'<L2, R2>(
-    f: (value: L) => L2,
-    g: (value: R) => R2
-  ): Either<L2, R2> {
-    return this.bimap(f, g)
-  }
-
-  'fantasy-land/map'<R2>(f: (value: R) => R2): Either<L, R2> {
-    return this.map(f)
-  }
-
-  'fantasy-land/ap'<R2>(other: Either<L, (value: R) => R2>): Either<L, R2> {
-    return this.ap(other)
-  }
-
-  'fantasy-land/equals'(other: Either<L, R>): boolean {
-    return this.equals(other)
-  }
-
-  'fantasy-land/chain'<R2>(f: (value: R) => Either<L, R2>): Either<L, R2> {
-    return this.chain(f)
-  }
-
-  'fantasy-land/alt'(other: Either<L, R>): Either<L, R> {
-    return this.alt(other)
-  }
-
-  'fantasy-land/reduce'<T>(
-    reducer: (accumulator: T, value: R) => T,
-    initialValue: T
-  ): T {
-    return this.reduce(reducer, initialValue)
-  }
-
-  'fantasy-land/extend'<R2>(f: (value: Either<L, R>) => R2): Either<L, R2> {
-    return this.extend(f)
-  }
+_right.traverse = function (_of: any, f: any): any {
+  const result = f(this.__value)
+  return result.map(Right)
 }
 
-Left.prototype.constructor = Either as any
+_right['fantasy-land/sequence'] = function (of: any): any {
+  return this.sequence(of)
+}
 
-const left = <L, R = never>(value: L): Either<L, R> => new Left(value)
+_right.sequence = function (_of: any): any {
+  return this.__value.map(Right)
+}
 
-const right = <R, L = never>(value: R): Either<L, R> => new Right(value)
+_left[ofSymbol] = Either.of
 
-export { left as Left, right as Right }
+_left[Symbol.iterator] = function* (): ThisType<any> {
+  return yield this
+}
+
+_left['fantasy-land/traverse'] = function (f: any): any {
+  return this.traverse(f)
+}
+
+_left.traverse = function (of: any, _f: any): any {
+  return of(this) as any
+}
+
+_left['fantasy-land/sequence'] = function (of: any): any {
+  return this.sequence(of)
+}
+
+_left.sequence = function (of: any): any {
+  return of(this)
+}
 
 export type IsLeft = {
   <L, R>(either: Either<L, R>): either is Either<L, never>
@@ -625,3 +108,6 @@ export const isLeft: IsLeft = <L, R>(
 export const isRight: IsRight = <L, R>(
   either: Either<L, R>
 ): either is Either<never, R> => either.isRight()
+
+export { Right, Either, Left } from 'purify-ts/Either'
+export type { EitherPatterns } from 'purify-ts/Either'

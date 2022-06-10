@@ -1,19 +1,9 @@
 import { EitherAsync } from './EitherAsync'
-import { Left, Right, Either } from './Either'
+import { Left, Right } from './Either'
 import { Nothing, Just } from './Maybe'
 import { Do } from './pointfree/do'
-import { kleisli } from './pointfree/kleisli'
 describe('EitherAsync', () => {
-  // test('Kleisli', () => {
-  //   const getNameTest = kleisli(
-  //     (name: string) => Just(name.toUpperCase()),
-  //     (_name) => Just(5),
-  //     (_name) => Just(5),
-  //     (_smh) => Nothing
-  //   )
-  //   const result = getNameTest('jason')
-  //   console.log(result)
-  // })
+  // TODO: fix
   test('Do', async () => {
     const do1 = Do(function* () {
       const num1 = yield* EitherAsync.of(10)
@@ -165,9 +155,9 @@ describe('EitherAsync', () => {
   })
 
   test('chainLeft', async () => {
-    const newEitherAsync = EitherAsync(() =>
-      Promise.resolve(5)
-    ).chainLeft((_) => EitherAsync(() => Promise.resolve(7)))
+    const newEitherAsync = EitherAsync(() => Promise.resolve(5)).chainLeft(
+      (_) => EitherAsync(() => Promise.resolve(7))
+    )
     const newEitherAsync2 = EitherAsync<number, number>(() =>
       Promise.reject(5)
     ).chainLeft((e) => EitherAsync(() => Promise.resolve(e + 1)))
@@ -177,9 +167,9 @@ describe('EitherAsync', () => {
   })
 
   test('chainLeft (with PromiseLike)', async () => {
-    const newEitherAsync = EitherAsync(() =>
-      Promise.resolve(5)
-    ).chainLeft((_) => EitherAsync.liftEither(Right(7)))
+    const newEitherAsync = EitherAsync(() => Promise.resolve(5)).chainLeft(
+      (_) => EitherAsync.liftEither(Right(7))
+    )
     const newEitherAsync2 = EitherAsync<number, number>(() =>
       Promise.reject(5)
     ).chainLeft((e) => EitherAsync.liftEither(Right(e + 1)))
@@ -274,15 +264,6 @@ describe('EitherAsync', () => {
     ).toEqual(Right(5))
     expect(
       await EitherAsync.fromPromise(() => Promise.reject(5)).run()
-    ).toEqual(Left(5))
-  })
-
-  test('liftPromise static', async () => {
-    expect(
-      await EitherAsync.liftPromise(() => Promise.resolve(5)).run()
-    ).toEqual(Right(5))
-    expect(
-      await EitherAsync.liftPromise(() => Promise.reject(5)).run()
     ).toEqual(Left(5))
   })
 
