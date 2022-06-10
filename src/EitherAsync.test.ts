@@ -1,41 +1,29 @@
 import { EitherAsync } from './EitherAsync'
-import { Left, Right, Either } from './Either'
+import { Left, Right } from './Either'
 import { Nothing, Just } from './Maybe'
 import { Do } from './pointfree/do'
-import { kleisli } from './pointfree/kleisli'
 describe('EitherAsync', () => {
-  // test('Kleisli', () => {
-  //   const getNameTest = kleisli(
-  //     (name: string) => Just(name.toUpperCase()),
-  //     (_name) => Just(5),
-  //     (_name) => Just(5),
-  //     (_smh) => Nothing
-  //   )
-  //   const result = getNameTest('jason')
-  //   console.log(result)
-  // })
-
   // TODO: fix
-  // test('Do', async () => {
-  //   const do1 = Do(function* () {
-  //     const num1 = yield* EitherAsync.of(10)
-  //     const num2 = yield* EitherAsync.of(5)
-  //     return num1 + num2
-  //   })
-  //   const do2 = Do(function* () {
-  //     const name = yield* EitherAsync.liftEither(Left(Error('error!')))
-  //     return name
-  //   })
-  //   const result = Do(function* () {
-  //     const number = yield* do1
-  //     const name = yield* do2
-  //     return {
-  //       number,
-  //       name
-  //     }
-  //   })
-  //   expect(await result).toEqual(Left(10))
-  // })
+  test('Do', async () => {
+    const do1 = Do(function* () {
+      const num1 = yield* EitherAsync.of(10)
+      const num2 = yield* EitherAsync.of(5)
+      return num1 + num2
+    })
+    const do2 = Do(function* () {
+      const name = yield* EitherAsync.liftEither(Left(Error('error!')))
+      return name
+    })
+    const result = Do(function* () {
+      const number = yield* do1
+      const name = yield* do2
+      return {
+        number,
+        name
+      }
+    })
+    expect(await result).toEqual(Left(10))
+  })
   test('fantasy-land', () => {
     expect(EitherAsync(async () => {}).constructor).toEqual(EitherAsync)
   })

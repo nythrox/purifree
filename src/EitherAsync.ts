@@ -1,3 +1,4 @@
+import { ofSymbol } from './pointfree/do'
 import { EitherAsync } from 'purify-ts'
 import { Right } from './Either'
 import { Type } from './pointfree/hkt'
@@ -16,7 +17,7 @@ declare module 'purify-ts/EitherAsync' {
     readonly _URI: EITHER_ASYNC_URI
     readonly _A: [R, L]
 
-    // [ofSymbol]: EitherAsync<L, R>['of']
+    [ofSymbol]: EitherAsyncTypeRef['of']
     [Symbol.iterator]: () => Iterator<Type<EITHER_ASYNC_URI, [R, L]>, R, any>
     [Symbol.toStringTag]: 'EitherAsync'
   }
@@ -36,5 +37,7 @@ _eitherAsync[Symbol.iterator] = function* (): any {
 
 EitherAsync.of = <L, R>(value: R): EitherAsync<L, R> =>
   EitherAsync.liftEither(Right(value))
+
+_eitherAsync[ofSymbol] = EitherAsync.of
 
 export * from 'purify-ts/EitherAsync'

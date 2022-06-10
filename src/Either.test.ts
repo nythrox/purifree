@@ -1,5 +1,6 @@
 import { Either, Left, Right } from './Either'
 import { NonEmptyList } from './NonEmptyList'
+import { Maybe, Just } from './Maybe'
 import { sequenceT } from './pointfree'
 
 describe('Either', () => {
@@ -15,5 +16,15 @@ describe('Either', () => {
 
     const sequenceTest2 = Right(NonEmptyList([1, 2])).sequence(NonEmptyList.of)
     expect(sequenceTest2).toEqual([Right(1), Right(2)])
+  })
+
+  test('iterator', () => {
+    for (const e of Right(5)) {
+      expect(e).toEqual(Right(5))
+    }
+  })
+  test('traverse', () => {
+    const wrappedwithMaybe = Right(4).traverse(Maybe.of, Just)
+    expect(wrappedwithMaybe).toEqual(Just(Right(4)))
   })
 })

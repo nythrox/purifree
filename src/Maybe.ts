@@ -115,6 +115,5 @@ interface Nothing extends N {
   ): Type<Ap['_URI'], ReplaceFirst<Ap['_A'], Maybe<Ap['_A'][0]>>>
 }
 
-export type { MaybePatterns } from 'purify-ts/Maybe'
-export { Maybe, Just } from 'purify-ts/Maybe'
+export * from 'purify-ts/Maybe'
 export const Nothing: Nothing = nothing as any

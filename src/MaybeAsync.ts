@@ -1,4 +1,5 @@
-import { MaybeAsync } from 'purify-ts'
+import { Just, MaybeAsync } from 'purify-ts'
+import { ofSymbol } from './pointfree/do'
 import { Nothing } from './Maybe'
 import { Type } from './pointfree/hkt'
 
@@ -18,7 +19,10 @@ declare module 'purify-ts/MaybeAsync' {
 
     [Symbol.iterator]: () => Iterator<Type<MAYBE_ASYNC_URI, [T]>, T, T>
     [Symbol.toStringTag]: 'MaybeAsync'
-    // [ofSymbol]: MaybeAsyncTypeRef['of']
+    [ofSymbol]: MaybeAsyncTypeRef['of']
+  }
+  interface MaybeAsyncTypeRef {
+    of<T>(value: T): MaybeAsync<T>
   }
 }
 
@@ -27,6 +31,10 @@ _maybeAsync[Symbol.toStringTag] = 'MaybeAsync'
 _maybeAsync[Symbol.iterator] = function* (): any {
   return yield this
 }
-// [ofSymbol] = MaybeAsync.of
+
+MaybeAsync.of = <T>(value: T): MaybeAsync<T> =>
+  MaybeAsync.liftMaybe(Just(value))
+
+_maybeAsync[ofSymbol] = MaybeAsync.of
 
 export * from 'purify-ts/MaybeAsync'

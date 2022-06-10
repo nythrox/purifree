@@ -1,9 +1,6 @@
-import { Right } from '../Either'
-import { Just } from '../Maybe'
-import { chain, Chainable, chainFlex } from './chain'
-import { filter } from './filter'
+import { Chainable } from './chain'
 import { of, ReplaceFirst, Type, URIS } from './hkt'
-import { map } from './map'
+
 export const ofSymbol = Symbol('of')
 export interface GeneratableKind<F extends URIS, A extends any[]>
   extends Chainable<F, A> {
@@ -11,9 +8,9 @@ export interface GeneratableKind<F extends URIS, A extends any[]>
   [ofSymbol]: of<F>
 }
 
-export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
-) => void
+export type UnionToIntersection<U> = (
+  U extends any ? (k: U) => void : never
+) extends (k: infer I) => void
   ? I
   : never
 
@@ -71,15 +68,3 @@ export function Do<
   }
   return run(state)
 }
-
-// export function Do2<R, URI extends URIS, A extends any[]>(
-//   fun: () => Generator<GeneratableKind<URI, A>, R, any>
-// ): IsUnion<A> extends true
-//   ? { error: 'All secondary generics must be of the same type.' }
-//   : IsUnion<URI> extends true
-//   ? {
-//       error: 'Cannot have monads of different types in do* notation'
-//     }
-//   : Type<URI, ReplaceFirst<A, R>> {
-//   return 0 as any
-// }
