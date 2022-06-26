@@ -4,10 +4,10 @@ export interface Chainable {
   readonly chain: (f: (value: Any) => Any) => Any
 }
 
-export function chain<T extends Chainable, U extends Chainable>(
+export function chain<T extends Chainable, U>(
   f: (
     value: InferInner<T>[0]
-  ) => Id<U> extends Id<T> ? U : `${Id<U>} can't be chained with ${Id<T>}`
+  ) => Id<U> extends Id<T> ? U : [U, "can't be chained with", T]
 ): (
   fa: T
 ) => InferADTSub<T, InferInner<U>[0], InferInner<T>[1] | InferInner<U>[1]> {
