@@ -1,11 +1,11 @@
-import { Any, InferADTSub, InferInner, NestedSameADT } from './types.ts'
+import { Any, InferADTSub, InferInner, NestedSameADT, ADT } from './types.ts'
 
 export interface Joinable {
   readonly join: () => Any
 }
 
 export const join =
-  <T extends Joinable>() =>
+  <T extends Joinable & ADT<unknown, unknown>>() =>
   (
     seq: NestedSameADT<T>
   ): InferADTSub<
