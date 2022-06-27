@@ -7,10 +7,11 @@ export interface Bimappable {
   ) => Any;
 }
 
-export const bimap = <T extends Bimappable & ADT<unknown, unknown>, B, C>(
+export function bimap<T extends Bimappable & ADT<unknown, unknown>, B, C>(
   f: (value: InferInner<T>[1]) => C,
   g: (value: InferInner<T>[0]) => B,
-) =>
-  (fa: T): InferADTSub<T, B, C> => {
+) {
+  return (fa: T): InferADTSub<T, B, C> => {
     return fa.bimap(f, g);
   };
+}

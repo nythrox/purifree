@@ -6,13 +6,11 @@ export interface ReduceableKind {
     initialValue: T2,
   ): T2;
 }
-export const reduce = <
+export function reduce<
   T extends ReduceableKind & ADT<unknown, unknown>,
   T2 = Any,
->(
-  reducer: (accumulator: T2, value: InferInner<T>[0]) => T2,
-  initialValue: T2,
-) =>
-  (reduceable: T): T2 => {
+>(reducer: (accumulator: T2, value: InferInner<T>[0]) => T2, initialValue: T2) {
+  return (reduceable: T): T2 => {
     return reduceable.reduce(reducer, initialValue);
   };
+}

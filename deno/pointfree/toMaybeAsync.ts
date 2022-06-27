@@ -5,7 +5,8 @@ export interface ToMaybeAsync {
   readonly toMaybeAsync: () => MaybeAsync<Any>;
 }
 
-export const toMaybeAsync = <T extends ToMaybeAsync>() =>
-  (fa: T): MaybeAsync<InferInner<T>[0]> => {
+export function toMaybeAsync<T extends ToMaybeAsync>() {
+  return (fa: T): MaybeAsync<InferInner<T>[0]> => {
     return fa.toMaybeAsync();
   };
+}

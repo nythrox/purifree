@@ -93,11 +93,6 @@ export function flow(...fns: Array<(...args: unknown[]) => unknown>): unknown {
   };
 }
 
-/** */
-export function absurd<A>(_: never): A {
-  throw new Error('Called `absurd` function which should be uncallable');
-}
-
 /**
  * Creates a tupled version of this function: instead of `n` arguments, it accepts a single tuple argument.
  *

@@ -1,11 +1,11 @@
-import { InferADT, ADT, Any } from './types.ts'
+import { ADT, Any, InferADT } from './types.ts';
 
 type IfNothing = {
-  readonly ifNothing: (effect: () => unknown) => Any
-}
+  readonly ifNothing: (effect: () => unknown) => Any;
+};
 
 export function ifNothing<T extends IfNothing & ADT<unknown, unknown>>(
-  effect: () => unknown
+  effect: () => unknown,
 ) {
-  return (fa: T): InferADT<T> => fa.ifNothing(effect)
+  return (fa: T): InferADT<T> => fa.ifNothing(effect);
 }
