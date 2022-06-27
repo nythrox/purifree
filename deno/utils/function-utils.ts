@@ -1,128 +1,3 @@
-// From fp-ts
-
-/**
- * A *thunk*
- *
- *
- */
-export interface Lazy<A> {
-  (): A
-}
-
-/**
- *
- */
-export interface Predicate<A> {
-  (a: A): boolean
-}
-
-/**
- *
- */
-export interface Refinement<A, B extends A> {
-  (a: A): a is B
-}
-
-/**
- *
- */
-export interface Endomorphism<A> {
-  (a: A): A
-}
-
-/**
- * @example
- * import { FunctionN } from 'purifree-ts/function'
- *
- * export const sum: FunctionN<[number, number], number> = (a, b) => a + b
- *
- *
- */
-export interface FunctionN<A extends ReadonlyArray<unknown>, B> {
-  (...args: A): B
-}
-
-/**
- *
- */
-export function identity<A>(a: A): A {
-  return a
-}
-
-/**
- *
- */
-export const unsafeCoerce: <A, B>(a: A) => B = identity as any
-
-/**
- *
- */
-export function not<A>(predicate: Predicate<A>): Predicate<A> {
-  return (a) => !predicate(a)
-}
-
-/**
- *
- */
-export function constant<A>(a: A): Lazy<A> {
-  return () => a
-}
-
-/**
- * A thunk that returns always `true`
- *
- *
- */
-export const constTrue = (): boolean => {
-  return true
-}
-
-/**
- * A thunk that returns always `false`
- *
- *
- */
-export const constFalse = (): boolean => {
-  return false
-}
-
-/**
- * A thunk that returns always `null`
- *
- *
- */
-export const constNull = (): null => {
-  return null
-}
-
-/**
- * A thunk that returns always `undefined`
- *
- *
- */
-export const constUndefined = (): undefined => {
-  return
-}
-
-/**
- * A thunk that returns always `void`
- *
- *
- */
-export const constVoid = (): void => {
-  return
-}
-
-// TODO: remove in v3
-/**
- * Flips the order of the arguments of a function of two arguments.
- *
- *
- */
-export function flip<A, B, C>(f: (a: A, b: B) => C): (b: B, a: A) => C {
-  return (b, a) => f(a, b)
-}
-
 /**
  * Performs left-to-right function composition. The first argument may have any arity, the remaining arguments must be unary.
  *
@@ -223,27 +98,6 @@ export function flow(...fns: Array<(...args: unknown[]) => unknown>): unknown {
 /**
  *
  */
-// export function tuple<T extends ReadonlyArray<any>>(...t: T): T {
-//   return t
-// }
-
-/**
- *
- */
-export function increment(n: number): number {
-  return n + 1
-}
-
-/**
- *
- */
-export function decrement(n: number): number {
-  return n - 1
-}
-
-/**
- *
- */
 export function absurd<A>(_: never): A {
   throw new Error('Called `absurd` function which should be uncallable')
 }
@@ -280,7 +134,7 @@ export function untupled<A extends ReadonlyArray<unknown>, B>(
  * See also [`flow`](#flow).
  *
  * @example
- * import { pipe } from 'purifree-ts/function'
+ * import { pipe } from 'purifree-ts'
  *
  * const len = (s: string): number => s.length
  * const double = (n: number): number => n * 2
@@ -565,26 +419,3 @@ export function pipe(
 ): unknown {
   return fns.reduce((acc, fn) => fn(acc), a)
 }
-
-/**
- * Type hole simulation
- */
-export const hole: <T>() => T = absurd as any
-
-/**
- * @internal
- */
-export const bind_ = <A, N extends string, B>(
-  a: A,
-  name: Exclude<N, keyof A>,
-  b: B
-): { [K in keyof A | N]: K extends keyof A ? A[K] : B } =>
-  Object.assign({}, a, { [name]: b }) as any
-
-/**
- * @internal
- */
-export const bindTo_ =
-  <N extends string>(name: N) =>
-  <B>(b: B): { [K in N]: B } =>
-    ({ [name]: b } as any)
