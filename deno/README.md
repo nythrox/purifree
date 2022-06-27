@@ -29,7 +29,7 @@ Purifree is available as a package on
 [Here](https://github.com/nythrox/purifree)
 
 ```ts
-import { map, chain, ... } from "https://deno.land/x/purifree@v1.2.7/mod.ts"
+import { map, chain, ... } from "https://deno.land/x/purifree@v1.2.8/mod.ts"
 ```
 
 # Purifree compatability
