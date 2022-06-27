@@ -1,7 +1,0 @@
-{
-  "imports": {
-    "purify": "https://cdn.skypack.dev/purify-ts@^1.2.2?dts",
-    "deno_bdd": "https://deno.land/std@0.144.0/testing/bdd.ts",
-    "deno_asserts": "https://deno.land/std@0.144.0/testing/asserts.ts"
-  }
-}

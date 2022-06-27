@@ -12,42 +12,40 @@
  * const f = flow(len, double)
  *
  * assert.strictEqual(f('aaa'), 6)
- *
- *
  */
 export function flow<A extends ReadonlyArray<unknown>, B>(
-  ab: (...a: A) => B
-): (...a: A) => B
+  ab: (...a: A) => B,
+): (...a: A) => B;
 export function flow<A extends ReadonlyArray<unknown>, B, C>(
   ab: (...a: A) => B,
-  bc: (b: B) => C
-): (...a: A) => C
+  bc: (b: B) => C,
+): (...a: A) => C;
 export function flow<A extends ReadonlyArray<unknown>, B, C, D>(
   ab: (...a: A) => B,
   bc: (b: B) => C,
-  cd: (c: C) => D
-): (...a: A) => D
+  cd: (c: C) => D,
+): (...a: A) => D;
 export function flow<A extends ReadonlyArray<unknown>, B, C, D, E>(
   ab: (...a: A) => B,
   bc: (b: B) => C,
   cd: (c: C) => D,
-  de: (d: D) => E
-): (...a: A) => E
+  de: (d: D) => E,
+): (...a: A) => E;
 export function flow<A extends ReadonlyArray<unknown>, B, C, D, E, F>(
   ab: (...a: A) => B,
   bc: (b: B) => C,
   cd: (c: C) => D,
   de: (d: D) => E,
-  ef: (e: E) => F
-): (...a: A) => F
+  ef: (e: E) => F,
+): (...a: A) => F;
 export function flow<A extends ReadonlyArray<unknown>, B, C, D, E, F, G>(
   ab: (...a: A) => B,
   bc: (b: B) => C,
   cd: (c: C) => D,
   de: (d: D) => E,
   ef: (e: E) => F,
-  fg: (f: F) => G
-): (...a: A) => G
+  fg: (f: F) => G,
+): (...a: A) => G;
 export function flow<A extends ReadonlyArray<unknown>, B, C, D, E, F, G, H>(
   ab: (...a: A) => B,
   bc: (b: B) => C,
@@ -55,8 +53,8 @@ export function flow<A extends ReadonlyArray<unknown>, B, C, D, E, F, G, H>(
   de: (d: D) => E,
   ef: (e: E) => F,
   fg: (f: F) => G,
-  gh: (g: G) => H
-): (...a: A) => H
+  gh: (g: G) => H,
+): (...a: A) => H;
 export function flow<A extends ReadonlyArray<unknown>, B, C, D, E, F, G, H, I>(
   ab: (...a: A) => B,
   bc: (b: B) => C,
@@ -65,8 +63,8 @@ export function flow<A extends ReadonlyArray<unknown>, B, C, D, E, F, G, H, I>(
   ef: (e: E) => F,
   fg: (f: F) => G,
   gh: (g: G) => H,
-  hi: (h: H) => I
-): (...a: A) => I
+  hi: (h: H) => I,
+): (...a: A) => I;
 export function flow<
   A extends ReadonlyArray<unknown>,
   B,
@@ -77,7 +75,7 @@ export function flow<
   G,
   H,
   I,
-  J
+  J,
 >(
   ab: (...a: A) => B,
   bc: (b: B) => C,
@@ -87,19 +85,17 @@ export function flow<
   fg: (f: F) => G,
   gh: (g: G) => H,
   hi: (h: H) => I,
-  ij: (i: I) => J
-): (...a: A) => J
+  ij: (i: I) => J,
+): (...a: A) => J;
 export function flow(...fns: Array<(...args: unknown[]) => unknown>): unknown {
   return function (...args: unknown[]) {
-    return fns.slice(1).reduce((acc, fn) => fn(acc), fns[0](...args))
-  }
+    return fns.slice(1).reduce((acc, fn) => fn(acc), fns[0](...args));
+  };
 }
 
-/**
- *
- */
+/** */
 export function absurd<A>(_: never): A {
-  throw new Error('Called `absurd` function which should be uncallable')
+  throw new Error('Called `absurd` function which should be uncallable');
 }
 
 /**
@@ -111,21 +107,20 @@ export function absurd<A>(_: never): A {
  * const add = tupled((x: number, y: number): number => x + y)
  *
  * assert.strictEqual(add([1, 2]), 3)
- *
  */
 export function tupled<A extends ReadonlyArray<unknown>, B>(
-  f: (...a: A) => B
+  f: (...a: A) => B,
 ): (a: A) => B {
-  return (a) => f(...a)
+  return (a) => f(...a);
 }
 
 /**
  * Inverse function of `tupled`
  */
 export function untupled<A extends ReadonlyArray<unknown>, B>(
-  f: (a: A) => B
+  f: (a: A) => B,
 ): (...a: A) => B {
-  return (...a) => f(a)
+  return (...a) => f(a);
 }
 
 /**
@@ -144,32 +139,31 @@ export function untupled<A extends ReadonlyArray<unknown>, B>(
  *
  * // with pipe
  * assert.strictEqual(pipe('aaa', len, double), 6)
- *
  */
-export function pipe<A>(a: A): A
-export function pipe<A, B>(a: A, ab: (a: A) => B): B
-export function pipe<A, B, C>(a: A, ab: (a: A) => B, bc: (b: B) => C): C
+export function pipe<A>(a: A): A;
+export function pipe<A, B>(a: A, ab: (a: A) => B): B;
+export function pipe<A, B, C>(a: A, ab: (a: A) => B, bc: (b: B) => C): C;
 export function pipe<A, B, C, D>(
   a: A,
   ab: (a: A) => B,
   bc: (b: B) => C,
-  cd: (c: C) => D
-): D
+  cd: (c: C) => D,
+): D;
 export function pipe<A, B, C, D, E>(
   a: A,
   ab: (a: A) => B,
   bc: (b: B) => C,
   cd: (c: C) => D,
-  de: (d: D) => E
-): E
+  de: (d: D) => E,
+): E;
 export function pipe<A, B, C, D, E, F>(
   a: A,
   ab: (a: A) => B,
   bc: (b: B) => C,
   cd: (c: C) => D,
   de: (d: D) => E,
-  ef: (e: E) => F
-): F
+  ef: (e: E) => F,
+): F;
 export function pipe<A, B, C, D, E, F, G>(
   a: A,
   ab: (a: A) => B,
@@ -177,8 +171,8 @@ export function pipe<A, B, C, D, E, F, G>(
   cd: (c: C) => D,
   de: (d: D) => E,
   ef: (e: E) => F,
-  fg: (f: F) => G
-): G
+  fg: (f: F) => G,
+): G;
 export function pipe<A, B, C, D, E, F, G, H>(
   a: A,
   ab: (a: A) => B,
@@ -187,8 +181,8 @@ export function pipe<A, B, C, D, E, F, G, H>(
   de: (d: D) => E,
   ef: (e: E) => F,
   fg: (f: F) => G,
-  gh: (g: G) => H
-): H
+  gh: (g: G) => H,
+): H;
 export function pipe<A, B, C, D, E, F, G, H, I>(
   a: A,
   ab: (a: A) => B,
@@ -198,8 +192,8 @@ export function pipe<A, B, C, D, E, F, G, H, I>(
   ef: (e: E) => F,
   fg: (f: F) => G,
   gh: (g: G) => H,
-  hi: (h: H) => I
-): I
+  hi: (h: H) => I,
+): I;
 export function pipe<A, B, C, D, E, F, G, H, I, J>(
   a: A,
   ab: (a: A) => B,
@@ -210,8 +204,8 @@ export function pipe<A, B, C, D, E, F, G, H, I, J>(
   fg: (f: F) => G,
   gh: (g: G) => H,
   hi: (h: H) => I,
-  ij: (i: I) => J
-): J
+  ij: (i: I) => J,
+): J;
 export function pipe<A, B, C, D, E, F, G, H, I, J, K>(
   a: A,
   ab: (a: A) => B,
@@ -223,8 +217,8 @@ export function pipe<A, B, C, D, E, F, G, H, I, J, K>(
   gh: (g: G) => H,
   hi: (h: H) => I,
   ij: (i: I) => J,
-  jk: (j: J) => K
-): K
+  jk: (j: J) => K,
+): K;
 export function pipe<A, B, C, D, E, F, G, H, I, J, K, L>(
   a: A,
   ab: (a: A) => B,
@@ -237,8 +231,8 @@ export function pipe<A, B, C, D, E, F, G, H, I, J, K, L>(
   hi: (h: H) => I,
   ij: (i: I) => J,
   jk: (j: J) => K,
-  kl: (k: K) => L
-): L
+  kl: (k: K) => L,
+): L;
 export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M>(
   a: A,
   ab: (a: A) => B,
@@ -252,8 +246,8 @@ export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M>(
   ij: (i: I) => J,
   jk: (j: J) => K,
   kl: (k: K) => L,
-  lm: (l: L) => M
-): M
+  lm: (l: L) => M,
+): M;
 export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N>(
   a: A,
   ab: (a: A) => B,
@@ -268,8 +262,8 @@ export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N>(
   jk: (j: J) => K,
   kl: (k: K) => L,
   lm: (l: L) => M,
-  mn: (m: M) => N
-): N
+  mn: (m: M) => N,
+): N;
 export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(
   a: A,
   ab: (a: A) => B,
@@ -285,8 +279,8 @@ export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(
   kl: (k: K) => L,
   lm: (l: L) => M,
   mn: (m: M) => N,
-  no: (n: N) => O
-): O
+  no: (n: N) => O,
+): O;
 
 export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(
   a: A,
@@ -304,8 +298,8 @@ export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(
   lm: (l: L) => M,
   mn: (m: M) => N,
   no: (n: N) => O,
-  op: (o: O) => P
-): P
+  op: (o: O) => P,
+): P;
 
 export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q>(
   a: A,
@@ -324,8 +318,8 @@ export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q>(
   mn: (m: M) => N,
   no: (n: N) => O,
   op: (o: O) => P,
-  pq: (p: P) => Q
-): Q
+  pq: (p: P) => Q,
+): Q;
 
 export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R>(
   a: A,
@@ -345,8 +339,8 @@ export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R>(
   no: (n: N) => O,
   op: (o: O) => P,
   pq: (p: P) => Q,
-  qr: (q: Q) => R
-): R
+  qr: (q: Q) => R,
+): R;
 
 export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S>(
   a: A,
@@ -367,8 +361,8 @@ export function pipe<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S>(
   op: (o: O) => P,
   pq: (p: P) => Q,
   qr: (q: Q) => R,
-  rs: (r: R) => S
-): S
+  rs: (r: R) => S,
+): S;
 
 export function pipe<
   A,
@@ -390,7 +384,7 @@ export function pipe<
   Q,
   R,
   S,
-  T
+  T,
 >(
   a: A,
   ab: (a: A) => B,
@@ -411,11 +405,11 @@ export function pipe<
   pq: (p: P) => Q,
   qr: (q: Q) => R,
   rs: (r: R) => S,
-  st: (s: S) => T
-): T
+  st: (s: S) => T,
+): T;
 export function pipe(
   a: unknown,
   ...fns: Array<(...args: unknown[]) => unknown>
 ): unknown {
-  return fns.reduce((acc, fn) => fn(acc), a)
+  return fns.reduce((acc, fn) => fn(acc), a);
 }

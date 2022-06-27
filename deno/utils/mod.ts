@@ -1,2 +1,2 @@
-export * from './createValidator.ts'
-export * from './function-utils.ts'
+export * from './createValidator.ts';
+export * from './function-utils.ts';
