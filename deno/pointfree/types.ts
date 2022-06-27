@@ -10,16 +10,19 @@ import {
 export type Eithers<L, R> = Either<L, R> | EitherAsync<L, R>
 export type Maybes<T> = Maybe<T> | MaybeAsync<T>
 
-export type ADT<R, L> =
-  | Eithers<L, R>
-  | Maybes<R>
-  //   | NonEmptyList<R>
-  | Tuple<L, R>
+export type ADT<R, L> = Eithers<L, R> | Maybes<R> | Tuple<L, R>
 
 export type AsyncADT<R, L> = EitherAsync<L, R> | MaybeAsync<R>
 export type SyncADT<R, L> = Either<L, R> | Maybe<R> | Tuple<L, R>
+export type ADTInPromiseLike<R, L> =
+  | PromiseLike<Either<L, R>>
+  | PromiseLike<Maybe<R>>
 
-export type InferInner<T> = T extends ADT<infer R, infer L> ? [R, L] : never
+export type InferInner<T> = T extends
+  | ADT<infer R, infer L>
+  | ADTInPromiseLike<infer R, infer L>
+  ? [R, L]
+  : never
 
 export type InferADT<T> = T extends Either<infer L, infer R>
   ? Either<L, R>
@@ -50,23 +53,21 @@ export type InferADTSub<T, R, L = unknown> = T extends Either<unknown, unknown>
   : T
 
 export type Id<T> = T extends Either<unknown, unknown>
-  ? `Either`
+  ? Either<unknown, unknown>
   : T extends Maybe<unknown>
-  ? `Maybe`
+  ? Maybe<unknown>
   : T extends Tuple<unknown, unknown>
-  ? `Tuple`
+  ? Tuple<unknown, unknown>
   : T extends NonEmptyList<unknown>
-  ? `NonEmptyList`
+  ? NonEmptyList<unknown>
   : T extends EitherAsync<unknown, unknown>
-  ? `EitherAsync`
+  ? EitherAsync<unknown, unknown>
+  : T extends PromiseLike<Either<unknown, unknown>>
+  ? EitherAsync<unknown, unknown>
   : T extends MaybeAsync<unknown>
-  ? `MaybeAsync`
-  : keyof T
-
-export type NestedSameADT<T> = T extends ADT<infer U, infer L>
-  ? Id<U> extends Id<T>
-    ? T
-    : never
+  ? MaybeAsync<unknown>
+  : T extends PromiseLike<Maybe<unknown>>
+  ? MaybeAsync<unknown>
   : never
 
 // deno-lint-ignore no-explicit-any
