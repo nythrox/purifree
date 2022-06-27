@@ -1,4 +1,4 @@
-import { Either } from 'purify-ts'
+import { Either } from 'purify'
 import { InferInner } from './types.ts'
 
 export const toEither =

@@ -1,5 +1,5 @@
 import { pipe } from '../utils/function-utils.ts'
-import { Left, Right } from 'purify-ts'
+import { Left, Right } from 'purify'
 import { chainLeft } from './chainLeft.ts'
 import { assertEquals } from 'deno_asserts'
 import { describe, it } from 'deno_bdd'

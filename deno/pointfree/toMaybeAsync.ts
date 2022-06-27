@@ -1,4 +1,4 @@
-import { MaybeAsync } from 'purify-ts'
+import { MaybeAsync } from 'purify'
 import { Any, InferInner } from './types.ts'
 
 export interface ToMaybeAsync {

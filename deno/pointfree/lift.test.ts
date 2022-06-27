@@ -1,4 +1,4 @@
-import { Left, Right } from 'purify-ts'
+import { Left, Right } from 'purify'
 import { assertEquals } from 'deno_asserts'
 import { describe, it as test } from 'deno_bdd'
 

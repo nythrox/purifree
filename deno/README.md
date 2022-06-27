@@ -24,7 +24,7 @@ Learn more about Purify <a href="https://github.com/gigobyte/purify">here</a>
 Purifree is available as a package on [Deno.land/x](https://deno.land/x/purifree-ts). Looking for the Node version? [Here](https://github.com/nythrox/purifree)
 
 ```ts
-import { map, chain } from "https://deno.land/x/purifree-ts@v1.2.3-rc1/mod.ts"
+import { map, chain, ... } from "https://deno.land/x/purifree@v1.2.4/mod.ts"
 ```
 
 # Purifree compatability

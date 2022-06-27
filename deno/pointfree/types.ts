@@ -5,7 +5,7 @@ import {
   MaybeAsync,
   Tuple,
   NonEmptyList
-} from 'purify-ts'
+} from 'purify'
 
 export type Eithers<L, R> = Either<L, R> | EitherAsync<L, R>
 export type Maybes<T> = Maybe<T> | MaybeAsync<T>

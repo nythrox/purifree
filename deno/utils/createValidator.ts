@@ -1,4 +1,4 @@
-import { NonEmptyList, Either, EitherAsync } from 'purify-ts'
+import { NonEmptyList, Either, EitherAsync } from 'purify'
 import { pipe } from './function-utils.ts'
 import { swap } from '../pointfree/swap.ts'
 

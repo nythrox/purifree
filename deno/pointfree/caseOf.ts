@@ -1,5 +1,5 @@
 import { ADT, Any, Eithers, Maybes, AsyncADT, SyncADT } from './types.ts'
-import { EitherPatterns, MaybePatterns } from 'purify-ts'
+import { EitherPatterns, MaybePatterns } from 'purify'
 
 interface CaseOfable {
   caseOf(pattern: Any): Any

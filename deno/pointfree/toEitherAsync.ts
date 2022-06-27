@@ -1,4 +1,4 @@
-import { EitherAsync } from 'purify-ts'
+import { EitherAsync } from 'purify'
 import { Any, InferInner } from './types.ts'
 
 export interface ToEitherAsync {
