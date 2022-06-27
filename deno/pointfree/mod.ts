@@ -1,5 +1,3 @@
-import { caseof } from './caseOf.ts';
-
 export { alt } from './alt.ts';
 export { ap } from './ap.ts';
 export { bimap } from './bimap.ts';
@@ -26,5 +24,3 @@ export { ifNothing } from './ifNothing.ts';
 export { ifLeft } from './ifLeft.ts';
 export { ifJust } from './ifJust.ts';
 export { ifRight } from './ifRight.ts';
-
-export const match = caseof;

@@ -3,10 +3,10 @@ import { Any, Id, InferADTSub, InferInner, SyncADT } from '../types.ts';
 
 type Ap<T> = SyncADT<T, Any> & ApKind;
 
-export const lift3C = <F extends (a: Any) => (b: Any) => (C: Any) => Any>(
+export function lift3C<F extends (a: Any) => (b: Any) => (C: Any) => Any>(
   f: F,
-) =>
-  <A extends Ap<Parameters<F>[0]>>(a: A) =>
+) {
+  return <A extends Ap<Parameters<F>[0]>>(a: A) =>
     <B extends Ap<Parameters<ReturnType<F>>[0]>>(
       b: Id<B> extends Id<A> ? B : never,
     ) =>
@@ -19,3 +19,4 @@ export const lift3C = <F extends (a: Any) => (b: Any) => (C: Any) => Any>(
           InferInner<A>[1] | InferInner<B>[1] | InferInner<C>[1]
         >;
       };
+}
