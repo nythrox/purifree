@@ -1,20 +1,30 @@
-export { alt } from './alt.ts';
-export { ap } from './ap.ts';
-export { bimap } from './bimap.ts';
-export { caseof } from './caseOf.ts';
-export { chain } from './chain.ts';
-export { extend } from './extend.ts';
-export { extract } from './extract.ts';
-export { filter } from './filter.ts';
-export { join } from './join.ts';
-export { kleisli } from './kleisli.ts';
-export * from './lifts/mod.ts';
-export { map } from './map.ts';
-export { mapLeft } from './mapLeft.ts';
-export { orDefault } from './orDefault.ts';
-export { orDefaultLazy } from './orDefaultLazy.ts';
-export { reduce } from './reduce.ts';
-export { toEither } from './toEither.ts';
-export { toMaybe } from './toMaybe.ts';
-export { toMaybeAsync } from './toMaybeAsync.ts';
-export { chainLeft } from './chainLeft.ts';
+import { caseof } from './caseOf.ts'
+
+export { alt } from './alt.ts'
+export { ap } from './ap.ts'
+export { bimap } from './bimap.ts'
+export { caseof } from './caseOf.ts'
+export { chain } from './chain.ts'
+export { extend } from './extend.ts'
+export { extract } from './extract.ts'
+export { filter } from './filter.ts'
+export { join } from './join.ts'
+export { kleisli } from './kleisli.ts'
+export * from './lifts/mod.ts'
+export { map } from './map.ts'
+export { mapLeft } from './mapLeft.ts'
+export { orDefault } from './orDefault.ts'
+export { orDefaultLazy } from './orDefaultLazy.ts'
+export { reduce } from './reduce.ts'
+export { toEither } from './toEither.ts'
+export { toMaybe } from './toMaybe.ts'
+export { toMaybeAsync } from './toMaybeAsync.ts'
+export { chainLeft } from './chainLeft.ts'
+export { swap } from './swap.ts'
+export { toEitherAsync } from './toEitherAsync.ts'
+export { ifNothing } from './ifNothing.ts'
+export { ifLeft } from './ifLeft.ts'
+export { ifJust } from './ifJust.ts'
+export { ifRight } from './ifRight.ts'
+
+export const match = caseof
