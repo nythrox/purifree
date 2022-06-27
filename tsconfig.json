@@ -20,5 +20,5 @@
     "isolatedModules": true,
     "skipLibCheck": true
   },
-  "exclude": ["site", "**/*.test.ts", "lib"]
+  "exclude": ["site", "**/*.test.ts", "lib", "deno"]
 }
